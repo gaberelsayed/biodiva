@@ -137,7 +137,6 @@ const addVideo_post = async (req, res) => {
       videoPrice,
       imgURL,
       videoURL,
-      liveLink,
 
     } = req.body;
     let embedURL = ""
@@ -146,16 +145,12 @@ const addVideo_post = async (req, res) => {
       throw new Error('Missing required fields');
     }
 
-    if (liveLink=="") {
+  
       if(imgURL=="" || videoURL==""){
         throw new Error('Missing required fields');
       }
-      console.log("video")
-    }else{
-      let LiveID = extractVideoID(liveLink);
-      embedURL = "https://www.youtube.com/embed/" + LiveID + "?origin=https://mrredafathyelking.com/";
-      console.log(embedURL)
-    }
+
+    
     // Generate unique ID for video object
     const videoId = uuidv4();
 
@@ -170,7 +165,6 @@ const addVideo_post = async (req, res) => {
       AccessibleAfterViewing: AccessibleAfterViewing || "",
       videoAllowedAttemps: +videoAllowedAttemps || 0,
       videoPrice: videoPrice || 0,
-      liveLink: embedURL || "",
       videoURL: videoURL || "",
       imgURL: imgURL || ""
     };
