@@ -1690,7 +1690,7 @@ const createSpecificCodes = async (req, res) => {
 
 const createGeneralCodes = async (req, res) => {
   try {
-    req.io.emit('creatingCodes', { code: 0 });
+    req.io.emit('creatingCodes', { code: 0 , nCodesFinished: 0 ,numberOfCodes:0});
     const { numberOfCodes } = req.body;
 
     // Validate the inputs
@@ -1720,7 +1720,7 @@ const createGeneralCodes = async (req, res) => {
       });
 
       c++;
-      req.io.emit('creatingCodes', { code: c});
+      req.io.emit('creatingCodes', { code: c , nCodesFinished: c ,numberOfCodes:numberOfCodes});
       const row = worksheet.addRow([c, code]);
       // Apply alternating row colors
       if (c % 2 === 0) {
