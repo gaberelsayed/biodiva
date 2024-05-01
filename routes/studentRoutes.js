@@ -115,6 +115,26 @@ router.post("/settings",authenticateUser, studentController.settings_post);
 
 
 
+// ================== END Profile  ====================== //
+
+
+
+// ================== PDFs  ====================== //
+router.get("/PDFs",authenticateUser, studentController.PDFs_get);
+
+router.get("/PDFs/:PDFID",authenticateUser, studentController.getPDF);
+
+router.post("/buyPDF/:PDFID",authenticateUser, studentController.buyPDF);
+
+
+// ==================ENd PDFs  ====================== //
+
+
+
+
+
+// ================== LogOut  ====================== //
+
 
 router.get("/logOut", studentController.logOut);
 

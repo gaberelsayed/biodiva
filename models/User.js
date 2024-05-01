@@ -81,6 +81,10 @@ const userSchema = new Schema({
         type: Array,
         required: false,
     },
+    PDFsPaid: {
+        type: Array,
+        required: false,
+    },
     isTeacher: {
         type: Boolean,
         required: true,

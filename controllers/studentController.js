@@ -2,6 +2,7 @@ const Quiz = require("../models/Quiz");
 const User = require("../models/User");
 const Chapter = require("../models/Chapter");
 const Code = require("../models/Code");
+const PDFs = require("../models/PDFs");
 const mongoose = require('mongoose');
 
 const jwt = require('jsonwebtoken')
@@ -281,7 +282,9 @@ const buyVideo = async (req, res) => {
 
     // Update Code document
     const CodeData = await Code.findOneAndUpdate(
+      // { "Code": code, "isUsed": false, "codeType": "Video", "codeFor": videoId },
       { "Code": code, "isUsed": false, "codeType": "General" },
+
       { "isUsed": true, "usedBy": req.userData.Code },
       { new: true }
     );
@@ -599,6 +602,8 @@ const buyQuiz = async (req, res) => {
 
 
 
+
+
 // ================== quiz  ====================== //
 const quiz_get = async (req, res) => {
   try {
@@ -809,6 +814,77 @@ const settings_post = async (req, res) => {
 
 
 
+// ==================  END Settings  ====================== //
+
+// ==================  PDFs  ====================== //
+
+const PDFs_get = async (req, res) => {
+  try {
+    const PDFdata = await PDFs.find({ "pdfGrade": req.userData.Grade }).sort({ createdAt: 1 })
+    console.log(PDFdata);
+
+    const PaidPDFs = PDFdata.map(PDF => {
+      const isPaid = req.userData.videosPaid.includes(PDF._id);
+      return { ...PDF.toObject(), isPaid };
+    });
+    res.render("student/PDFs", { title: "PDFs", path: req.path, PDFs: PaidPDFs, userData: req.userData });
+
+  } catch (error) {
+    res.send(error.message);
+  }
+}
+
+const getPDF = async (req, res) => {
+  try {
+    const pdfId = req.params.PDFID;
+    const pdf = await PDFs.findById(pdfId);
+// Check if pdfsPaid is defined and is an array
+  console.log(pdfId);
+// Alternatively, you can use a more explicit check
+const isPaid = req.userData.videosPaid.includes(pdfId);
+console.log(isPaid);
+    if (pdf.pdfStatus == "Paid") {
+      if (isPaid) {
+        res.render("student/ViewPDF", { title: "View PDF", path: req.path, pdf: pdf, userData: req.userData });
+      } else {
+        res.redirect('/student/PDFs');
+      }
+    } else {
+      res.render("student/ViewPDF", { title: "View PDF", path: req.path, pdf: pdf, userData: req.userData });
+    }
+  } catch (error) {
+    res.send(error.message);
+  }
+}
+
+
+
+const buyPDF = async (req, res) => {
+  try {
+    const pdfId = req.params.PDFID;
+    const code = req.body.code;
+   const CodeData =  await Code.findOneAndUpdate({ "Code": code , "isUsed": false , "codeType":"PDF"  }, 
+   { "isUsed": true, "usedBy": req.userData.Code }, { new: true });
+   if (CodeData) {
+    const user=  await User.findByIdAndUpdate(req.userData._id, { $push: { videosPaid: pdfId } });
+    console.log(user  )
+    res.redirect('/student/PDFs');
+   }else{
+    res.redirect('/student/PDFs?error=true');
+     }
+   
+   console.log(CodeData);
+  } catch (error) {
+    res.send(error.message);
+  }
+};
+// ================== END PDFs  ====================== //
+
+
+
+
+
+
 // ================== LogOut  ====================== //
 
 
@@ -852,6 +928,9 @@ module.exports = {
   settings_get,
   settings_post,
 
+  PDFs_get ,
+  getPDF,
+  buyPDF,
 
   logOut,
 };

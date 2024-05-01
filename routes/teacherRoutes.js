@@ -205,6 +205,9 @@ router.get("/handleVideo/:videoCode",authMiddleware, teacherController.getSingle
 // ================== End Handle Videos ================= //
 
 
+router.get("/PDFPost",authMiddleware, teacherController.PDFPost_get);
+router.post("/PDFPost",authMiddleware, teacherController.PDFPost_post);
+
 
 
 

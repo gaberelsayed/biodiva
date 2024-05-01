@@ -2,6 +2,8 @@ const Quiz = require("../models/Quiz");
 const User = require("../models/User");
 const Chapter = require("../models/Chapter");
 const Code = require("../models/Code");
+const PDF = require("../models/PDFs");
+
 const mongoose = require('mongoose');
 
 
@@ -1707,7 +1709,6 @@ const createGeneralCodes = async (req, res) => {
     headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF00' } };
     let c = 0;
     for (const code of generatedCodes) {
-      // console.log(code)
 
       await Code.create({ Code: code, isUsed: false, codeType: "General", codeFor: null, usedBy: null, usedIn: null }).then((result) => {
         console.log(result)
@@ -1943,6 +1944,41 @@ const searchToGetCode = async (req, res) => {
 
 // ================================================== END Handel Codes ================================================ // 
 
+const PDFPost_get = (req, res) => {
+  res.render("teacher/PDFPost", { title: "PDFPost", path: req.path });
+}
+
+const PDFPost_post = async (req, res) => {
+  const {
+    pdfName,
+    pdfLink,
+    status,
+    pdfGrade,
+    price,
+  } = req.body;
+
+  const pdf = new PDF({
+    pdfName: pdfName,
+    pdfLink: pdfLink,
+    pdfStatus: status,
+    pdfGrade: pdfGrade,
+    pdfPrice: status == "Free" ? 0 : price,
+  });
+  pdf.
+    save()
+    .then((result) => {
+      res.redirect("/teacher/PDFPost");
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("An error occurred while saving the pdf.");
+    });
+  
+
+
+}
+
+
 
 const logOut = async (req, res) => {
   // Clearing the token cookie
@@ -2013,6 +2049,8 @@ module.exports = {
 
   searchToGetCode,
 
+  PDFPost_get,
+  PDFPost_post,
 
   logOut,
 };
