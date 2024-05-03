@@ -14,6 +14,11 @@ const userSchema = new Schema({
         required: true,
         unique: false
     },
+    PasswordWithOutHash : {
+        type: String,
+        required: true,
+        unique: false
+    },
     gov: {
         type: String,
         required: true,
