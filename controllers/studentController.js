@@ -369,7 +369,14 @@ async function getVideoWatch(req,res){
   const VideoId = req.params.VideoId;
 
 
-  const chapter = await Chapter.findById(chapterID, { chapterLectures: 1  , chapterSummaries: 1 , chapterSolvings: 1});
+  const chapter = await Chapter.findById(chapterID, { chapterLectures: 1  , chapterSummaries: 1 , chapterSolvings: 1 ,chapterAccessibility :1});
+  if (chapter.chapterAccessibility=="EnterInPay") {
+    const isPaid = req.userData.chaptersPaid.includes(chapterID);
+    if (!isPaid) {
+      res.redirect('/student/chapters');
+    }
+   
+  }
   if (videoType=="lecture") {
     const video = chapter.chapterLectures.find(video => video._id == VideoId);
     const isPaid = req.userData.videosPaid.includes(VideoId);
