@@ -23,13 +23,15 @@ const teacherRoutes = require('./routes/teacherRoutes')
 const studentRoutes = require('./routes/studentRoutes');
 // express app
 const app = express();
+app.use(express.json());
+
 const socketio = require('socket.io');
 const path = require('path');
 
 
 // CONECT to mongodb
 let io
-const dbURI = 'mongodb+srv://3devWay:1qaz2wsx@cluster0.5orkagp.mongodb.net/biodiva?retryWrites=true&w=majority&appName=Cluster0'
+const dbURI = 'mongodb+srv://3devWay:1qaz2wsx@cluster0.5orkagp.mongodb.net/biodiva2?retryWrites=true&w=majority&appName=Cluster0'
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then((result) => {
         let server = app.listen(8000);

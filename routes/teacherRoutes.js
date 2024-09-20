@@ -93,6 +93,10 @@ router.post("/addVideo" , teacherController.addVideo_post);
 
 router.get("/studentsRequests/:studentID", authMiddleware,teacherController.getSingleUserAllData);
 
+router.get("/studentsRequests/delete/:studentID", authMiddleware,teacherController.confirmDeleteStudent);
+
+router.post("/studentsRequests/delete/:studentID", authMiddleware,teacherController.DeleteStudent);
+
 router.post("/converStudentRequestsToExcel", authMiddleware,teacherController.converStudentRequestsToExcel);
 
 router.post("/searchForUser", authMiddleware,teacherController.searchForUser);
@@ -205,14 +209,45 @@ router.get("/handleVideo/:videoCode",authMiddleware, teacherController.getSingle
 // ================== End Handle Videos ================= //
 
 
+// ================== PDF ====================== //
 router.get("/PDFPost",authMiddleware, teacherController.PDFPost_get);
 router.post("/PDFPost",authMiddleware, teacherController.PDFPost_post);
 
+// ================== End PDF ================= //
+
+
+// ================== Add Card To Sudent ====================== //
+
+router.get('/addCard', authMiddleware, teacherController.addCardGet);
+
+router.post('/addCard', authMiddleware, teacherController.addCardToStudent);
+
+router.post('/addCard/getAttendedUsers', authMiddleware, teacherController.getAttendedUsers);
+
+
+router.post('/addCard/attendUser', authMiddleware, teacherController.attendUser);
+
+router.delete('/addCard/removeAttendance/:studentId',authMiddleware,teacherController.removeAttendance);
+
+router.post('/addCard/convertAttendanceToExcel',authMiddleware,teacherController.convertAttendanceToExcel);
 
 
 
+// ================== End Add Card To Sudent ================= //
 
 
+
+// ================== Handel Attendace ====================== //
+
+
+router.get('/handelAttendance', authMiddleware, teacherController.handelAttendanceGet);
+
+
+router.post('/handelAttendance/getDates', authMiddleware, teacherController.getDates);
+
+router.post('/handelAttendance/getAttendees', authMiddleware, teacherController.getAttendees);
+
+router.post('/handelAttendance/convertAttendeesToExcel', authMiddleware, teacherController.convertAttendeesToExcel);
 
 
 module.exports = router;

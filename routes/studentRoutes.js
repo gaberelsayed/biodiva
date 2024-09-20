@@ -114,11 +114,6 @@ router.get("/settings",authenticateUser, studentController.settings_get);
 router.post("/settings",authenticateUser, studentController.settings_post);
 
 
-
-// ================== END Profile  ====================== //
-
-
-
 // ================== PDFs  ====================== //
 router.get("/PDFs",authenticateUser, studentController.PDFs_get);
 
@@ -132,8 +127,6 @@ router.post("/buyPDF/:PDFID",authenticateUser, studentController.buyPDF);
 
 
 
-
-// ================== LogOut  ====================== //
 
 
 router.get("/logOut", studentController.logOut);

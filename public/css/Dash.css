@@ -274,10 +274,11 @@ aside .close {
 aside .sidebar {
   display: flex;
   flex-direction: column;
-  height: 86vh;
+  height:100vh;
   position: relative;
   top: 3rem;
-}
+
+  }
 
 aside h3 {
   font-weight: 500;
@@ -2388,8 +2389,20 @@ font-weight: bolder;
 
 
 
-@media screen and (max-width:600px) {
+@media screen and (max-width:700px) {
   
+aside .sidebar a,
+aside .sidebar button {
+  display: flex;
+  color: var(--color-info-dark);
+  margin-right: 2rem;
+  gap: 1rem;
+  align-items: center;
+  position: relative;
+  height: 3.3rem;
+  border-top-left-radius: 1rem;
+  transition: all 400ms;
+}
   .quiz-info h2{
     font-size: 1.5rem;
     font-weight: bolder;

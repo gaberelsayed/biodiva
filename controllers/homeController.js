@@ -85,7 +85,6 @@ const public_Register_post = async (req, res) => {
     phone,
     parentPhone,
     place,
-  
   } = req.body;
 
   // Create an object to store validation errors
@@ -93,150 +92,143 @@ const public_Register_post = async (req, res) => {
 
   // Check if the password is at least 7 characters long
   if (Password.length < 7) {
-    req.body.Password = "";
-    errors.password = "- كلمة المرور يجب ان لا تقل عن 7";
+    req.body.Password = '';
+    errors.password = '- كلمة المرور يجب ان لا تقل عن 7';
   }
-  let Code = Math.floor((Math.random() * 400000) + 600000);
+  let Code = Math.floor(Math.random() * 400000 + 600000);
 
   // Check if the phone number has 11 digits
   if (phone.length !== 11) {
-    req.body.phone = "";
-    errors.phone = "- رقم الهاتف يجب ان يحتوي علي 11 رقم";
+    req.body.phone = '';
+    errors.phone = '- رقم الهاتف يجب ان يحتوي علي 11 رقم';
   }
-
 
   // Check if the parent's phone number has 11 digits
   if (parentPhone.length !== 11) {
-    req.body.parentPhone = "";
-    errors.parentPhone = "- رقم هاتف ولي الامر يجب ان يحتوي علي 11 رقم";
+    req.body.parentPhone = '';
+    errors.parentPhone = '- رقم هاتف ولي الامر يجب ان يحتوي علي 11 رقم';
   }
 
   // Check if phone is equal to parentPhone
   if (phone === parentPhone) {
     // Clear the phone and parentPhone fields in the form data
-    req.body.phone = "";
-    req.body.parentPhone = "";
+    req.body.phone = '';
+    req.body.parentPhone = '';
 
     // Set an error message for this condition
-    errors.phone = "- رقم هاتف الطالب لا يجب ان يساوي رقم هاتف ولي الامر";
+    errors.phone = '- رقم هاتف الطالب لا يجب ان يساوي رقم هاتف ولي الامر';
   }
   if (!gender) {
-    errors.gender = "- يجب اختيار نوع الجنس";
+    errors.gender = '- يجب اختيار نوع الجنس';
   }
   if (!gov) {
-    errors.gov = "- يجب اختيار محافظة";
+    errors.gov = '- يجب اختيار محافظة';
   }
   if (!Grade) {
-    errors.Grade = "- يجب اختيار الصف الدراسي";
+    errors.Grade = '- يجب اختيار الصف الدراسي';
   }
   // if (!ARorEN) {
   //   errors.Grade = "- يجب اختيار انت عربي ولا لغات";
   // }
   // If there are validation errors, render the registration form again with error messages
   if (Object.keys(errors).length > 0) {
-    return res.render("Register", {
-      title: "Register Page",
-      errors:errors,
-      firebaseError:"",
+    return res.render('Register', {
+      title: 'Register Page',
+      errors: errors,
+      firebaseError: '',
       formData: req.body, // Pass the form data back to pre-fill the form
     });
   }
 
   // auth Of jwt
 
-  let quizesInfo = []
-  let videosInfo = []
+  let quizesInfo = [];
+  let videosInfo = [];
 
   if (Grade ==="Grade1") {
-    await User.findOne({Grade:Grade,Code:759922}).then((result)=>{
+    await User.findOne({Grade:Grade,Code:874325}).then((result)=>{
       quizesInfo = result.quizesInfo
       videosInfo = result.videosInfo
-      
+
     })
   }else if(Grade ==="Grade2"){
-    await User.findOne({Grade:Grade,Code:995915}).then((result)=>{
+    await User.findOne({Grade:Grade,Code:736624}).then((result)=>{
       quizesInfo = result.quizesInfo
       videosInfo = result.videosInfo
     })
   }else if(Grade ==="Grade3"){
-    await User.findOne({Grade:Grade,Code:969113}).then((result)=>{
+    await User.findOne({Grade:Grade,Code:887426}).then((result)=>{
       quizesInfo = result.quizesInfo
       videosInfo = result.videosInfo
     })
   }
 
-
-
-  const hashedPassword = await bcrypt.hash(Password,10)
+  const hashedPassword = await bcrypt.hash(Password, 10);
 
   try {
-    const user =  new User({
-      Username:Username,
-      Password:hashedPassword,
-      PasswordWithOutHash:Password,
-      gov:gov,
-      Markez:Markez,
-      schoolName:schoolName,
-      Grade:Grade,
-      gender:gender,
-      phone:phone,
-      parentPhone:parentPhone,
-      place:place,
-      Code:Code,
-      subscribe :false,
-      quizesInfo :quizesInfo,
-      videosInfo : videosInfo,
-      totalScore:0,
-      examsEnterd:0,
-      totalQuestions:0,
-      totalSubscribed:0,
-      isTeacher:false,
-      ARorEN : "AR",
-      chaptersPaid:[],
+    const user = new User({
+      Username: Username,
+      Password: hashedPassword,
+      PasswordWithOutHash: Password,
+      gov: gov,
+      Markez: Markez,
+      schoolName: schoolName,
+      Grade: Grade,
+      gender: gender,
+      phone: phone,
+      parentPhone: parentPhone,
+      place: place,
+      Code: Code,
+      subscribe: false,
+      quizesInfo: quizesInfo,
+      videosInfo: videosInfo,
+      totalScore: 0,
+      examsEnterd: 0,
+      totalQuestions: 0,
+      totalSubscribed: 0,
+      isTeacher: false,
+      ARorEN: 'AR',
+      chaptersPaid: [],
       videosPaid: [],
       examsPaid: [],
       // Add other fields as needed
     });
     user
-    .save()
-    .then((result) => {
-      
-        res.status(201).redirect("Register?StudentCode=" + encodeURIComponent(Code));
-
-    }).catch((error)=>{
-      if (error.name === 'MongoServerError' && error.code === 11000) {
-        // Duplicate key error
-        errors.emailDub = "هذا الرقم مستخدم من قبل";
-        // Handle the error as needed
-        res.render("Register", {
-          title: "Register Page",
-          errors:errors,
-          firebaseError:"",
-          formData: req.body, // Pass the form data back to pre-fill the form
-        });
-    } else {
-        // Handle other errors
-        console.error(error);
-        res.status(500).json({ message: 'Internal Server Error' });
-    }
-    })
-
+      .save()
+      .then((result) => {
+        res
+          .status(201)
+          .redirect('Register?StudentCode=' + encodeURIComponent(Code));
+      })
+      .catch((error) => {
+        if (error.name === 'MongoServerError' && error.code === 11000) {
+          // Duplicate key error
+          errors.emailDub = 'هذا الرقم مستخدم من قبل';
+          // Handle the error as needed
+          res.render('Register', {
+            title: 'Register Page',
+            errors: errors,
+            firebaseError: '',
+            formData: req.body, // Pass the form data back to pre-fill the form
+          });
+        } else {
+          // Handle other errors
+          console.error(error);
+          res.status(500).json({ message: 'Internal Server Error' });
+        }
+      });
   } catch (error) {
     if (error.name === 'MongoServerError' && error.code === 11000) {
-        // Duplicate key error
-        errors.emailDub = "This email is already in use.";
-        // Handle the error as needed
-        res.status(409).json({ message: 'User already in use' });
+      // Duplicate key error
+      errors.emailDub = 'This email is already in use.';
+      // Handle the error as needed
+      res.status(409).json({ message: 'User already in use' });
     } else {
-        // Handle other errors
-        console.error(error);
-        res.status(500).json({ message: 'Internal Server Error' });
+      // Handle other errors
+      console.error(error);
+      res.status(500).json({ message: 'Internal Server Error' });
     }
-}
-
-  
-
-
+  }
 };
 
 const forgetPassword_get = (req,res)=>{

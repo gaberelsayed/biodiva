@@ -117,29 +117,7 @@
                         <!------------------- END OF INSGIHTS ---------------->
                         <div class="col-lg-4 ">
                             <div class="left">
-                                <div class="top">
-                                    <button id="menu-btn">
-                                        <span class="material-icons-sharp">
-                                            menu
-                                        </span>
-                                    </button>
-                                    <div class="theme-toggler">
-                                        <span class="material-icons-sharp active">
-                                            light_mode
-                                        </span>
-                                        <span class="material-icons-sharp">
-                                            dark_mode
-                                        </span>
-                                    </div>
-                                    <div class="profile">
-                                        <div class="info">
-                                            <p>اهلا بك،<b id="userName"> </b></p>
-                                        </div>
-                                        <div class="profile-photo">
-                                            <a href="settings.html"><img id="profile_photo" alt="profile photo"></a>
-                                        </div>
-                                    </div>
-                                </div>
+                                <%- include("./partials/top.ejs") %> 
                                 <!-- END OF TOP -->
                                 <div class="recent-updates " onclick="window.location.href = 'ranking.html'">
                                     <h2></h2>
@@ -191,20 +169,7 @@
     <script src="../assest/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-<script>
-       
-       const sdieMenu = document.querySelector("aside");
-    const menuBtn = document.querySelector("#menu-btn");
-    const closeBtn = document.querySelector("#close-btn");
-  
-    menuBtn.addEventListener("click", () => {
-      sdieMenu.style.display = "block";
-    });
-  
-    closeBtn.addEventListener("click", () => {
-      sdieMenu.style.display = "none";
-    });
-</script>
+
 </body>
 
 

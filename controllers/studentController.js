@@ -1,278 +1,366 @@
-const Quiz = require("../models/Quiz");
-const User = require("../models/User");
-const Chapter = require("../models/Chapter");
-const Code = require("../models/Code");
-const PDFs = require("../models/PDFs");
+const Quiz = require('../models/Quiz');
+const User = require('../models/User');
+const Chapter = require('../models/Chapter');
+const Code = require('../models/Code');
 const mongoose = require('mongoose');
 
-const jwt = require('jsonwebtoken')
-const  jwtSecret = process.env.JWTSECRET
-
+const jwt = require('jsonwebtoken');
+const jwtSecret = process.env.JWTSECRET;
 
 const Excel = require('exceljs');
 const PDFDocument = require('pdfkit');
 const stream = require('stream');
 
-
-const { v4: uuidv4 } = require('uuid')
+const { v4: uuidv4 } = require('uuid');
 
 // ==================  Dash  ====================== //
 
 const dash_get = async (req, res) => {
   try {
-      const rankedUsers = await User.find({},{Username:1,userPhoto:1}).sort({ totalscore: -1 }).limit(3);
-      console.log(rankedUsers[0]);
-    res.render("student/dash", { title: "DashBoard", path: req.path, userData: req.userData ,rankedUsers :rankedUsers });
+    const rankedUsers = await User.find(
+      { Grade: req.userData.Grade },
+      { Username: 1, userPhoto: 1 }
+    )
+      .sort({ totalScore: -1 })
+      .limit(3);
+
+    res.render('student/dash', {
+      title: 'DashBoard',
+      path: req.path,
+      userData: req.userData,
+      rankedUsers: rankedUsers,
+    });
   } catch (error) {
     res.send(error.message);
   }
 };
 
-
 // ==================  END Dash  ====================== //
-
 
 // ==================  Chapter  ====================== //
 
 const chapters_get = async (req, res) => {
   try {
-    const chapters = await Chapter.find({ "chapterGrade": req.userData.Grade ,"ARorEN" :req.userData.ARorEN }).sort({ createdAt: 1 });
-    const paidChapters = chapters.map(chapter => {
+    const chapters = await Chapter.find({
+      chapterGrade: req.userData.Grade,
+      ARorEN: req.userData.ARorEN,
+    }).sort({ createdAt: 1 });
+    const paidChapters = chapters.map((chapter) => {
       const isPaid = req.userData.chaptersPaid.includes(chapter._id);
       return { ...chapter.toObject(), isPaid };
     });
-    res.render("student/chapters", { title: "Videos", path: req.path, chapters: paidChapters, userData: req.userData });
+    res.render('student/chapters', {
+      title: 'Videos',
+      path: req.path,
+      chapters: paidChapters,
+      userData: req.userData,
+    });
   } catch (error) {
     res.send(error.message);
   }
-  
 };
-
 
 const buyChapter = async (req, res) => {
   try {
     const cahpterId = req.params.cahpterId;
     const code = req.body.code;
-    const chapterData = await Chapter.findById(cahpterId,{chapterName:1}).then((result)=>{})
-   const CodeData =  await Code.findOneAndUpdate({ "Code": code , "isUsed": false , "codeType":"General"  }, 
-   { "isUsed": true, "usedBy": req.userData.Code }, { new: true });
-   if (CodeData) {
-    await User.findByIdAndUpdate(req.userData._id, { $push: { chaptersPaid: cahpterId } });
-    res.redirect('/student/videos/lecture/'+cahpterId);
-   }else{
-    res.redirect('/student/chapters?error=true');
-     }
-   
-   console.log(CodeData);
+    const chapterData = await Chapter.findById(cahpterId, {
+      chapterName: 1,
+    }).then((result) => {});
+    const CodeData = await Code.findOneAndUpdate(
+      { Code: code, isUsed: false, codeType: 'Chapter', codeFor: cahpterId },
+      {
+        isUsed: true,
+        usedBy: req.userData.Code,
+        usedIn: chapterData.chapterName,
+      },
+      { new: true }
+    );
+    if (CodeData) {
+      await User.findByIdAndUpdate(req.userData._id, {
+        $push: { chaptersPaid: cahpterId },
+      });
+      res.redirect('/student/videos/lecture/' + cahpterId);
+    } else {
+      res.redirect('/student/chapters?error=true');
+    }
+
+    console.log(CodeData);
   } catch (error) {
     res.send(error.message);
   }
 };
 
-
-
 // ================== End Chapter  ====================== //
 
-
-
 // ==================  Lecture  ====================== //
-
 
 const lecture_get = async (req, res) => {
   try {
     const cahpterId = req.params.cahpterId;
-    const chapter = await Chapter.findById(cahpterId, { chapterLectures: 1 ,chapterAccessibility:1});
+    const chapter = await Chapter.findById(cahpterId, {
+      chapterLectures: 1,
+      chapterAccessibility: 1,
+    });
     const isPaid = req.userData.chaptersPaid.includes(cahpterId);
     // console.log(chapter,chapter.chapterAccessibility, isPaid);
-    const paidVideos = chapter.chapterLectures.map(lecture => {
+    const paidVideos = chapter.chapterLectures.map((lecture) => {
       const isPaid = req.userData.videosPaid.includes(lecture._id);
-      const vidoeUser = req.userData.videosInfo.find(video => video._id == lecture._id)
-      let videoPrerequisitesName
-    
-      let isUserCanEnter = true
-      if(lecture.prerequisites=="WithExamaAndHw" || lecture.prerequisites=="WithExam" || lecture.prerequisites=="WithHw" ){
+      const vidoeUser = req.userData.videosInfo.find(
+        (video) => video._id == lecture._id
+      );
+      let videoPrerequisitesName;
 
-        const video = req.userData.videosInfo.find(video => video._id == lecture.AccessibleAfterViewing);
+      let isUserCanEnter = true;
+      if (
+        lecture.prerequisites == 'WithExamaAndHw' ||
+        lecture.prerequisites == 'WithExam' ||
+        lecture.prerequisites == 'WithHw'
+      ) {
+        const video = req.userData.videosInfo.find(
+          (video) => video._id == lecture.AccessibleAfterViewing
+        );
         videoPrerequisitesName = video ? video.videoName : null;
-        if (lecture.prerequisites=="WithExamaAndHw" ) {
-          if (vidoeUser.isUserEnterQuiz && vidoeUser.isUserUploadPerviousHWAndApproved) {
-            isUserCanEnter = true
-          }else{
-            isUserCanEnter = false
+        if (lecture.prerequisites == 'WithExamaAndHw') {
+          if (
+            vidoeUser.isUserEnterQuiz &&
+            vidoeUser.isUserUploadPerviousHWAndApproved
+          ) {
+            isUserCanEnter = true;
+          } else {
+            isUserCanEnter = false;
           }
-        }else if (lecture.prerequisites=="WithExam") {
+        } else if (lecture.prerequisites == 'WithExam') {
           if (vidoeUser.isUserEnterQuiz) {
-            isUserCanEnter = true
-          }else{
-            isUserCanEnter = false
+            isUserCanEnter = true;
+          } else {
+            isUserCanEnter = false;
           }
-          
-        }else if (lecture.prerequisites=="WithHw") {
+        } else if (lecture.prerequisites == 'WithHw') {
           if (vidoeUser.isUserUploadPerviousHWAndApproved) {
-            isUserCanEnter = true
-          }else{
-            isUserCanEnter = false
+            isUserCanEnter = true;
+          } else {
+            isUserCanEnter = false;
           }
-          
-        }else{
-          isUserCanEnter = true
+        } else {
+          isUserCanEnter = true;
         }
-
-       
-
       }
 
-      return { ...lecture, isPaid , Attemps : vidoeUser?.videoAllowedAttemps ?? 0 ,videoPrerequisitesName:videoPrerequisitesName || null ,isUserCanEnter:isUserCanEnter};
+      return {
+        ...lecture,
+        isPaid,
+        Attemps: vidoeUser?.videoAllowedAttemps ?? 0,
+        videoPrerequisitesName: videoPrerequisitesName || null,
+        isUserCanEnter: isUserCanEnter,
+      };
     });
 
     console.log(paidVideos);
 
-   if (chapter.chapterAccessibility === "EnterInFree") {
-    res.render("student/videos", { title: "Lecture", path: req.path, chapterLectures: paidVideos, userData: req.userData ,chapterId:cahpterId});
-    }else{
+    if (chapter.chapterAccessibility === 'EnterInFree') {
+      res.render('student/videos', {
+        title: 'Lecture',
+        path: req.path,
+        chapterLectures: paidVideos,
+        userData: req.userData,
+        chapterId: cahpterId,
+      });
+    } else {
       if (isPaid) {
-        res.render("student/videos", { title: "Lecture", path: req.path, chapterLectures: paidVideos, userData: req.userData,chapterId:cahpterId });
+        res.render('student/videos', {
+          title: 'Lecture',
+          path: req.path,
+          chapterLectures: paidVideos,
+          userData: req.userData,
+          chapterId: cahpterId,
+        });
       } else {
         res.redirect('/student/chapters');
       }
     }
-    
-
   } catch (error) {
     res.send(error.message);
   }
-}
-
+};
 
 const sum_get = async (req, res) => {
   try {
     const cahpterId = req.params.cahpterId;
-    const chapter = await Chapter.findById(cahpterId, { chapterSummaries: 1 ,chapterAccessibility:1});
+    const chapter = await Chapter.findById(cahpterId, {
+      chapterSummaries: 1,
+      chapterAccessibility: 1,
+    });
     const isPaid = req.userData.chaptersPaid.includes(cahpterId);
     // console.log(chapter,chapter.chapterAccessibility, isPaid);
-    const paidVideos = chapter.chapterSummaries.map(lecture => {
+    const paidVideos = chapter.chapterSummaries.map((lecture) => {
       const isPaid = req.userData.videosPaid.includes(lecture._id);
-      const vidoeUser = req.userData.videosInfo.find(video => video._id == lecture._id)
-      let videoPrerequisitesName
-    
-      let isUserCanEnter = true
-      if(lecture.prerequisites=="WithExamaAndHw" || lecture.prerequisites=="WithExam" || lecture.prerequisites=="WithHw" ){
+      const vidoeUser = req.userData.videosInfo.find(
+        (video) => video._id == lecture._id
+      );
+      let videoPrerequisitesName;
 
-        const video = req.userData.videosInfo.find(video => video._id == lecture.AccessibleAfterViewing);
+      let isUserCanEnter = true;
+      if (
+        lecture.prerequisites == 'WithExamaAndHw' ||
+        lecture.prerequisites == 'WithExam' ||
+        lecture.prerequisites == 'WithHw'
+      ) {
+        const video = req.userData.videosInfo.find(
+          (video) => video._id == lecture.AccessibleAfterViewing
+        );
         videoPrerequisitesName = video ? video.videoName : null;
-        if (lecture.prerequisites=="WithExamaAndHw" ) {
-          if (vidoeUser.isUserEnterQuiz && vidoeUser.isUserUploadPerviousHWAndApproved) {
-            isUserCanEnter = true
-          }else{
-            isUserCanEnter = false
+        if (lecture.prerequisites == 'WithExamaAndHw') {
+          if (
+            vidoeUser.isUserEnterQuiz &&
+            vidoeUser.isUserUploadPerviousHWAndApproved
+          ) {
+            isUserCanEnter = true;
+          } else {
+            isUserCanEnter = false;
           }
-        }else if (lecture.prerequisites=="WithExam") {
+        } else if (lecture.prerequisites == 'WithExam') {
           if (vidoeUser.isUserEnterQuiz) {
-            isUserCanEnter = true
-          }else{
-            isUserCanEnter = false
+            isUserCanEnter = true;
+          } else {
+            isUserCanEnter = false;
           }
-          
-        }else if (lecture.prerequisites=="WithHw") {
+        } else if (lecture.prerequisites == 'WithHw') {
           if (vidoeUser.isUserUploadPerviousHWAndApproved) {
-            isUserCanEnter = true
-          }else{
-            isUserCanEnter = false
+            isUserCanEnter = true;
+          } else {
+            isUserCanEnter = false;
           }
-          
-        }else{
-          isUserCanEnter = true
+        } else {
+          isUserCanEnter = true;
         }
-
-       
-
       }
 
-      return { ...lecture, isPaid , Attemps : vidoeUser?.videoAllowedAttemps ?? 0 ,videoPrerequisitesName:videoPrerequisitesName || null ,isUserCanEnter:isUserCanEnter};
+      return {
+        ...lecture,
+        isPaid,
+        Attemps: vidoeUser?.videoAllowedAttemps ?? 0,
+        videoPrerequisitesName: videoPrerequisitesName || null,
+        isUserCanEnter: isUserCanEnter,
+      };
     });
 
     console.log(paidVideos);
 
-   if (chapter.chapterAccessibility === "EnterInFree") {
-    res.render("student/videos", { title: "Lecture", path: req.path, chapterLectures: paidVideos, userData: req.userData ,chapterId:cahpterId});
-    }else{
+    if (chapter.chapterAccessibility === 'EnterInFree') {
+      res.render('student/videos', {
+        title: 'Lecture',
+        path: req.path,
+        chapterLectures: paidVideos,
+        userData: req.userData,
+        chapterId: cahpterId,
+      });
+    } else {
       if (isPaid) {
-        res.render("student/videos", { title: "Lecture", path: req.path, chapterLectures: paidVideos, userData: req.userData ,chapterId:cahpterId });
+        res.render('student/videos', {
+          title: 'Lecture',
+          path: req.path,
+          chapterLectures: paidVideos,
+          userData: req.userData,
+          chapterId: cahpterId,
+        });
       } else {
         res.redirect('/student/chapters');
       }
     }
-    
-
   } catch (error) {
     res.send(error.message);
   }
-}
+};
 
 const solv_get = async (req, res) => {
   try {
     const cahpterId = req.params.cahpterId;
-    const chapter = await Chapter.findById(cahpterId, { chapterSolvings: 1 ,chapterAccessibility:1});
+    const chapter = await Chapter.findById(cahpterId, {
+      chapterSolvings: 1,
+      chapterAccessibility: 1,
+    });
     const isPaid = req.userData.chaptersPaid.includes(cahpterId);
     // console.log(chapter,chapter.chapterAccessibility, isPaid);
-    const paidVideos = chapter.chapterSolvings.map(lecture => {
+    const paidVideos = chapter.chapterSolvings.map((lecture) => {
       const isPaid = req.userData.videosPaid.includes(lecture._id);
-      const vidoeUser = req.userData.videosInfo.find(video => video._id == lecture._id)
-      let videoPrerequisitesName
-    
-      let isUserCanEnter = true
-      if(lecture.prerequisites=="WithExamaAndHw" || lecture.prerequisites=="WithExam" || lecture.prerequisites=="WithHw" ){
+      const vidoeUser = req.userData.videosInfo.find(
+        (video) => video._id == lecture._id
+      );
+      let videoPrerequisitesName;
 
-        const video = req.userData.videosInfo.find(video => video._id == lecture.AccessibleAfterViewing);
+      let isUserCanEnter = true;
+      if (
+        lecture.prerequisites == 'WithExamaAndHw' ||
+        lecture.prerequisites == 'WithExam' ||
+        lecture.prerequisites == 'WithHw'
+      ) {
+        const video = req.userData.videosInfo.find(
+          (video) => video._id == lecture.AccessibleAfterViewing
+        );
         videoPrerequisitesName = video ? video.videoName : null;
-        if (lecture.prerequisites=="WithExamaAndHw" ) {
-          if (vidoeUser.isUserEnterQuiz && vidoeUser.isUserUploadPerviousHWAndApproved) {
-            isUserCanEnter = true
-          }else{
-            isUserCanEnter = false
+        if (lecture.prerequisites == 'WithExamaAndHw') {
+          if (
+            vidoeUser.isUserEnterQuiz &&
+            vidoeUser.isUserUploadPerviousHWAndApproved
+          ) {
+            isUserCanEnter = true;
+          } else {
+            isUserCanEnter = false;
           }
-        }else if (lecture.prerequisites=="WithExam") {
+        } else if (lecture.prerequisites == 'WithExam') {
           if (vidoeUser.isUserEnterQuiz) {
-            isUserCanEnter = true
-          }else{
-            isUserCanEnter = false
+            isUserCanEnter = true;
+          } else {
+            isUserCanEnter = false;
           }
-          
-        }else if (lecture.prerequisites=="WithHw") {
+        } else if (lecture.prerequisites == 'WithHw') {
           if (vidoeUser.isUserUploadPerviousHWAndApproved) {
-            isUserCanEnter = true
-          }else{
-            isUserCanEnter = false
+            isUserCanEnter = true;
+          } else {
+            isUserCanEnter = false;
           }
-          
-        }else{
-          isUserCanEnter = true
+        } else {
+          isUserCanEnter = true;
         }
-
-       
-
       }
 
-      return { ...lecture, isPaid , Attemps : vidoeUser?.videoAllowedAttemps ?? 0 ,videoPrerequisitesName:videoPrerequisitesName || null ,isUserCanEnter:isUserCanEnter};
+      return {
+        ...lecture,
+        isPaid,
+        Attemps: vidoeUser?.videoAllowedAttemps ?? 0,
+        videoPrerequisitesName: videoPrerequisitesName || null,
+        isUserCanEnter: isUserCanEnter,
+      };
     });
 
     console.log(paidVideos);
 
-   if (chapter.chapterAccessibility === "EnterInFree") {
-    res.render("student/videos", { title: "Lecture", path: req.path, chapterLectures: paidVideos, userData: req.userData ,chapterId:cahpterId});
-    }else{
+    if (chapter.chapterAccessibility === 'EnterInFree') {
+      res.render('student/videos', {
+        title: 'Lecture',
+        path: req.path,
+        chapterLectures: paidVideos,
+        userData: req.userData,
+        chapterId: cahpterId,
+      });
+    } else {
       if (isPaid) {
-        res.render("student/videos", { title: "Lecture", path: req.path, chapterLectures: paidVideos, userData: req.userData,chapterId:cahpterId });
+        res.render('student/videos', {
+          title: 'Lecture',
+          path: req.path,
+          chapterLectures: paidVideos,
+          userData: req.userData,
+          chapterId: cahpterId,
+        });
       } else {
         res.redirect('/student/chapters');
       }
     }
-    
-
   } catch (error) {
     res.send(error.message);
   }
-}
+};
 
 const buyVideo = async (req, res) => {
   try {
@@ -281,30 +369,32 @@ const buyVideo = async (req, res) => {
     console.log(videoId, code);
 
     // Update Code document
+    // Update Code document
     const CodeData = await Code.findOneAndUpdate(
-      // { "Code": code, "isUsed": false, "codeType": "Video", "codeFor": videoId },
-      { "Code": code, "isUsed": false, "codeType": "General" },
-
-      { "isUsed": true, "usedBy": req.userData.Code },
+      { Code: code, isUsed: false },
+      { isUsed: true, usedBy: req.userData.Code },
       { new: true }
     );
 
     if (CodeData) {
       // Check if the videoId exists in videosInfo array before updating
-      const user = await User.findOne({ _id: req.userData._id, "videosInfo._id": videoId });
+      const user = await User.findOne({
+        _id: req.userData._id,
+        'videosInfo._id': videoId,
+      });
       if (user) {
         // Update User document
         await User.findOneAndUpdate(
-          { _id: req.userData._id, "videosInfo._id": videoId },
-          { 
-            $push: { videosPaid: videoId }, 
+          { _id: req.userData._id, 'videosInfo._id': videoId },
+          {
+            $push: { videosPaid: videoId },
             $inc: { totalSubscribed: 1 },
-            $set: { 'videosInfo.$.videoPurchaseStatus': true } 
+            $set: { 'videosInfo.$.videoPurchaseStatus': true },
           }
         );
         res.status(204).send();
       } else {
-        res.status(301).send()
+        res.status(301).send();
       }
     } else {
       res.status(301).send();
@@ -312,140 +402,151 @@ const buyVideo = async (req, res) => {
   } catch (error) {
     res.send(error.message);
   }
-}
-
+};
 
 // ================== End Lecture  ====================== //
 
-
-
-
 // ==================  Watch  ====================== //
-async function updateWatchInUser (req,res,videoId,chapterID){
-
-  const videoInfo = req.userData.videosInfo.find(video => video._id.toString() === videoId.toString());
- console.log(videoInfo);
- const c = 1; 
-
- if (videoInfo.videoAllowedAttemps <= 0) {
-  return res.redirect('/student/videos/lecture/'+chapterID);
-  
- }
- if (!videoInfo.fristWatch) {
-  await User.findOneAndUpdate(
-    { _id: req.userData._id, 'videosInfo._id': videoId },
-    {
-      $set: { 
-        'videosInfo.$.fristWatch': Date.now(),
-        'videosInfo.$.lastWatch': Date.now()
-      },
-      $inc: { // Decrementing the values of videoAllowedAttemps and numberOfWatches
-        'videosInfo.$.videoAllowedAttemps': -c,
-        'videosInfo.$.numberOfWatches': +c
-      }
-    }
+async function updateWatchInUser(req, res, videoId, chapterID) {
+  const videoInfo = req.userData.videosInfo.find(
+    (video) => video._id.toString() === videoId.toString()
   );
- }else{
-  await User.findOneAndUpdate(
-    { _id: req.userData._id, 'videosInfo._id': videoId },
-    {
-      $set: { 
-    
-        'videosInfo.$.lastWatch': Date.now()
-      },
-      $inc: { // Decrementing the values of videoAllowedAttemps and numberOfWatches
-        'videosInfo.$.videoAllowedAttemps': -c,
-        'videosInfo.$.numberOfWatches': +c
+  console.log(videoInfo);
+  const c = 1;
+
+  if (videoInfo.videoAllowedAttemps <= 0) {
+    return res.redirect('/student/videos/lecture/' + chapterID);
+  }
+  if (!videoInfo.fristWatch) {
+    await User.findOneAndUpdate(
+      { _id: req.userData._id, 'videosInfo._id': videoId },
+      {
+        $set: {
+          'videosInfo.$.fristWatch': Date.now(),
+          'videosInfo.$.lastWatch': Date.now(),
+        },
+        $inc: {
+          // Decrementing the values of videoAllowedAttemps and numberOfWatches
+          'videosInfo.$.videoAllowedAttemps': -c,
+          'videosInfo.$.numberOfWatches': +c,
+        },
       }
-    }
-  );
- }
-
-
+    );
+  } else {
+    await User.findOneAndUpdate(
+      { _id: req.userData._id, 'videosInfo._id': videoId },
+      {
+        $set: {
+          'videosInfo.$.lastWatch': Date.now(),
+        },
+        $inc: {
+          // Decrementing the values of videoAllowedAttemps and numberOfWatches
+          'videosInfo.$.videoAllowedAttemps': -c,
+          'videosInfo.$.numberOfWatches': +c,
+        },
+      }
+    );
+  }
 }
-async function getVideoWatch(req,res){
+async function getVideoWatch(req, res) {
   const videoType = req.params.videoType;
   const chapterID = req.params.chapterID;
   const VideoId = req.params.VideoId;
 
-
-  const chapter = await Chapter.findById(chapterID, { chapterLectures: 1  , chapterSummaries: 1 , chapterSolvings: 1 ,chapterAccessibility :1});
-  if (chapter.chapterAccessibility=="EnterInPay") {
-    const isPaid = req.userData.chaptersPaid.includes(chapterID);
-    if (!isPaid) {
-      res.redirect('/student/chapters');
-    }
-   
-  }
-  if (videoType=="lecture") {
-    const video = chapter.chapterLectures.find(video => video._id == VideoId);
+  const chapter = await Chapter.findById(chapterID, {
+    chapterLectures: 1,
+    chapterSummaries: 1,
+    chapterSolvings: 1,
+  });
+  if (videoType == 'lecture') {
+    const video = chapter.chapterLectures.find((video) => video._id == VideoId);
     const isPaid = req.userData.videosPaid.includes(VideoId);
-    if (video.paymentStatus=="Pay") {
+    if (video.paymentStatus == 'Pay') {
       if (isPaid) {
-
-        updateWatchInUser(req,res,VideoId,chapterID).then((result)=>{
-          res.render("student/watch", { title: "Watch", path: req.path, video: video, userData: req.userData });
-        })
-
+        updateWatchInUser(req, res, VideoId, chapterID).then((result) => {
+          res.render('student/watch', {
+            title: 'Watch',
+            path: req.path,
+            video: video,
+            userData: req.userData,
+          });
+        });
       } else {
-        res.redirect('/student/videos/lecture/'+chapterID);
+        res.redirect('/student/videos/lecture/' + chapterID);
       }
-    }else{
-
-      updateWatchInUser(req,res,VideoId,chapterID).then((result)=>{
-        res.render("student/watch", { title: "Watch", path: req.path, video: video, userData: req.userData });
-      })
-      
+    } else {
+      updateWatchInUser(req, res, VideoId, chapterID).then((result) => {
+        res.render('student/watch', {
+          title: 'Watch',
+          path: req.path,
+          video: video,
+          userData: req.userData,
+        });
+      });
     }
-   
-    
-  }else if (videoType=="summaries") {
-    const video = chapter.chapterSummaries.find(video => video._id == VideoId);
+  } else if (videoType == 'summaries') {
+    const video = chapter.chapterSummaries.find(
+      (video) => video._id == VideoId
+    );
     const isPaid = req.userData.videosPaid.includes(VideoId);
-    if (video.paymentStatus=="Pay") {
+    if (video.paymentStatus == 'Pay') {
       if (isPaid) {
-
-        updateWatchInUser(req,res,VideoId,chapterID).then((result)=>{
-          res.render("student/watch", { title: "Watch", path: req.path, video: video, userData: req.userData });
-        })
-
+        updateWatchInUser(req, res, VideoId, chapterID).then((result) => {
+          res.render('student/watch', {
+            title: 'Watch',
+            path: req.path,
+            video: video,
+            userData: req.userData,
+          });
+        });
       } else {
-        res.redirect('/student/videos/summaries/'+chapterID);
+        res.redirect('/student/videos/summaries/' + chapterID);
       }
-    }else{
-      updateWatchInUser(req,res,VideoId,chapterID).then((result)=>{
-        res.render("student/watch", { title: "Watch", path: req.path, video: video, userData: req.userData });
-      })
+    } else {
+      updateWatchInUser(req, res, VideoId, chapterID).then((result) => {
+        res.render('student/watch', {
+          title: 'Watch',
+          path: req.path,
+          video: video,
+          userData: req.userData,
+        });
+      });
     }
-
-  }else if (videoType=="Solving") {
-    const video = chapter.chapterSolvings.find(video => video._id == VideoId);
+  } else if (videoType == 'Solving') {
+    const video = chapter.chapterSolvings.find((video) => video._id == VideoId);
     const isPaid = req.userData.videosPaid.includes(VideoId);
-    if (video.paymentStatus=="Pay") {
+    if (video.paymentStatus == 'Pay') {
       if (isPaid) {
-        updateWatchInUser(req,res,VideoId,chapterID).then((result)=>{
-          res.render("student/watch", { title: "Watch", path: req.path, video: video, userData: req.userData });
-        })
+        updateWatchInUser(req, res, VideoId, chapterID).then((result) => {
+          res.render('student/watch', {
+            title: 'Watch',
+            path: req.path,
+            video: video,
+            userData: req.userData,
+          });
+        });
       } else {
-        res.redirect('/student/videos/Solving/'+chapterID);
+        res.redirect('/student/videos/Solving/' + chapterID);
       }
-    }else{
-      updateWatchInUser(req,res,VideoId,chapterID).then((result)=>{
-        res.render("student/watch", { title: "Watch", path: req.path, video: video, userData: req.userData });
-      })
-    }  
+    } else {
+      updateWatchInUser(req, res, VideoId, chapterID).then((result) => {
+        res.render('student/watch', {
+          title: 'Watch',
+          path: req.path,
+          video: video,
+          userData: req.userData,
+        });
+      });
+    }
   }
 }
 
-
 const watch_get = async (req, res) => {
   try {
-    
-  await getVideoWatch(req,res)
+    await getVideoWatch(req, res);
   } catch (error) {
     res.send(error.message);
   }
-
 };
 
 const uploadHW = async (req, res) => {
@@ -466,121 +567,161 @@ const uploadHW = async (req, res) => {
   }
 };
 
-
-
-
-
 // ================== END Watch  ====================== //
-
-
-
-
 
 // ================== Ranking  ====================== //
 
-const ranking_get = async (req,res)=>{
+const ranking_get = async (req, res) => {
   try {
-
     const { searchInput } = req.query;
-    let perPage =20;
+    let perPage = 20;
     let page = req.query.page || 1;
-    
+
     if (searchInput) {
       // Find the student with the given Code
       const student = await User.findOne({ Code: searchInput }).exec();
-    
+
       // Find all students and sort them by totalScore
-      const allStudents = await User.find({}, { Username: 1, Code: 1, totalScore: 1 })
-        .sort({ totalScore: -1 })
-    
+      const allStudents = await User.find(
+        {},
+        { Username: 1, Code: 1, totalScore: 1 }
+      ).sort({ totalScore: -1 });
 
       // Find the index of the student in the sorted array
-      const userRank = allStudents.findIndex(s => s.Code === +searchInput) + 1;
+      const userRank =
+        allStudents.findIndex((s) => s.Code === +searchInput) + 1;
       console.log(userRank);
-      const paginatedStudents = await User.find({ Code: searchInput }, { Username: 1, Code: 1, totalScore: 1 })
-        .sort({ totalScore: -1 })
-    
-    
+      const paginatedStudents = await User.find(
+        { Code: searchInput },
+        { Username: 1, Code: 1, totalScore: 1 }
+      ).sort({ totalScore: -1 });
+
       const count = await User.countDocuments({});
-    
+
       const nextPage = parseInt(page) + 1;
       const hasNextPage = nextPage <= Math.ceil(count / perPage);
       const hasPreviousPage = page > 1;
-    
-      res.render("student/ranking", {
-        title: "Ranking",
+
+      res.render('student/ranking', {
+        title: 'Ranking',
         path: req.path,
         isSearching: true,
         userData: req.userData,
         rankedUsers: paginatedStudents,
         nextPage: hasNextPage ? nextPage : null,
         previousPage: hasPreviousPage ? page - 1 : null,
-        userRank: userRank // Include user's rank in the response
+        userRank: userRank, // Include user's rank in the response
       });
-    
+
+      return;
+    } else {
+      await User.find(
+        { Grade: req.userData.Grade },
+        { Username: 1, Code: 1, totalScore: 1 }
+      )
+        .sort({ totalScore: -1 })
+        .then(async (result) => {
+          const count = await Code.countDocuments({});
+          const nextPage = parseInt(page) + 1;
+          const hasNextPage = nextPage <= Math.ceil(count / perPage);
+          const hasPreviousPage = page > 1;
+
+          res.render('student/ranking', {
+            title: 'Ranking',
+            path: req.path,
+            userData: req.userData,
+            rankedUsers: result,
+            nextPage: hasNextPage ? nextPage : null,
+            previousPage: hasPreviousPage ? page - 1 : null,
+            userRank: null,
+            isSearching: false,
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
       return;
     }
-    
-    else{
-    await User.find({},{Username:1,Code:1,totalScore:1}).sort({ totalscore: -1 })  
- 
-    .then(async (result) => {
-      const count = await Code.countDocuments({});
-      const nextPage = parseInt(page) + 1;
-      const hasNextPage = nextPage <= Math.ceil(count / perPage);
-      const hasPreviousPage = page > 1;
-      
-      res.render("student/ranking", { title: "Ranking", path: req.path, userData: req.userData ,rankedUsers :result , nextPage: hasNextPage ? nextPage : null, previousPage: hasPreviousPage ? page - 1 : null,  userRank: null ,isSearching : false});
-
-    }).catch((err)=>{
-      console.log(err)
-    })
-    return
-  }
   } catch (error) {
-    console.log()
+    console.log();
   }
-  
-}
+};
 
 // ================== END Ranking  ====================== //
 
-
-
-
 // ================== Exams  ====================== //
 
+// ================== Exams  ====================== //
 const exams_get = async (req, res) => {
   try {
+    // Get the top 3 ranked users by total score
+    const rankedUsers = await User.find(
+      { Grade: req.userData.Grade },
+      { Username: 1, userPhoto: 1 }
+    )
+      .sort({ totalScore: -1 })
+      .limit(3);
 
-    const rankedUsers = await User.find({},{Username:1,userPhoto:1}).sort({ totalscore: -1 }).limit(3);
-
-    const exams = await Quiz.find({ "Grade": req.userData.Grade  }).sort({ createdAt: 1 });
- 
-    const paidExams = exams.map(exam => {
-      const isPaid = req.userData.examsPaid.includes(exam._id);
-      const quizUser = req.userData.quizesInfo.find(quiz => quiz._id.toString() === exam._id.toString());
-      const quizInfo = quizUser ? { 
-        isEnterd: quizUser.isEnterd,
-        inProgress: quizUser.inProgress,
-        Score: quizUser.Score,
-        answers: quizUser.answers,
-        // Add other properties you want to include
-      } : null;
-  
-      return { ...exam.toObject(), isPaid ,quizUser:quizInfo };
+    // Get all exams for the user's grade
+    const exams = await Quiz.find({ Grade: req.userData.Grade }).sort({
+      createdAt: 1,
     });
-    // console.log(paidExams);
 
-    res.render("student/exams", { title: "Exams", path: req.path,userData: req.userData,rankedUsers :rankedUsers, exams: paidExams});
+    // Map through the exams and add additional information
+    const paidExams = await Promise.all(
+      exams.map(async (exam) => {
+        const isPaid = req.userData.examsPaid.includes(exam._id);
+        const quizUser = req.userData.quizesInfo.find(
+          (quiz) => quiz._id.toString() === exam._id.toString()
+        );
+
+        // Get all user scores for the current quiz
+        const users = await User.find({
+          Grade: req.userData.Grade,
+          'quizesInfo._id': exam._id,
+        }).select('quizesInfo.$');
+
+        // Extract and sort the scores
+        const userScores = users
+          .map((user) => ({
+            userId: user._id,
+            score: user.quizesInfo[0].Score,
+          }))
+          .sort((a, b) => b.score - a.score);
+
+        // Find the rank of the current user
+        const userRank =
+          userScores.findIndex(
+            (result) => result.userId.toString() === req.userData._id.toString()
+          ) + 1;
+
+        const quizInfo = quizUser
+          ? {
+              isEnterd: quizUser.isEnterd,
+              inProgress: quizUser.inProgress,
+              Score: quizUser.Score,
+              answers: quizUser.answers,
+              rank: userRank, // Add user rank here
+              lengthOfUsersTakesQuiz: userScores.length, // Add total number of users who took the quiz
+              // Add other properties you want to include
+            }
+          : null;
+
+        return { ...exam.toObject(), isPaid, quizUser: quizInfo };
+      })
+    );
+
+    res.render('student/exams', {
+      title: 'Exams',
+      path: req.path,
+      userData: req.userData,
+      rankedUsers,
+      exams: paidExams,
+    });
   } catch (error) {
     res.send(error.message);
   }
-  
-}
-
-
-
+};
 
 const buyQuiz = async (req, res) => {
   try {
@@ -588,44 +729,52 @@ const buyQuiz = async (req, res) => {
     const code = req.body.code;
     const quizObectId = new mongoose.Types.ObjectId(quizId);
     console.log(quizId, quizObectId);
-   const CodeData =  await Code.findOneAndUpdate ({"Code": code,"codeType":"Quiz" ,"isUsed": false , "codeFor": quizId   }, 
-   { "isUsed": true, "usedBy": req.userData.Code  }, { new: true }); 
-    if (CodeData) { 
+    const CodeData = await Code.findOneAndUpdate(
+      { Code: code, codeType: 'Quiz', isUsed: false, codeFor: quizId },
+      { isUsed: true, usedBy: req.userData.Code },
+      { new: true }
+    );
+    if (CodeData) {
       console.log(req.userData._id);
-      
-      await User.findOneAndUpdate({_id: req.userData._id ,  'quizesInfo._id': quizObectId  }, { $push: { examsPaid: quizId } ,$set: { 'quizesInfo.$.quizPurchaseStatus': true } } ); 
-  
+
+      await User.findOneAndUpdate(
+        { _id: req.userData._id, 'quizesInfo._id': quizObectId },
+        {
+          $push: { examsPaid: quizId },
+          $set: { 'quizesInfo.$.quizPurchaseStatus': true },
+        }
+      );
+
       res.redirect('/student/exams');
-    }
-    else{
+    } else {
       res.redirect('/student/exams?error=true');
     }
-  }
-  catch (error ) {
+  } catch (error) {
     res.redirect('/student/exams?error=true');
-  } 
-}
+  }
+};
 // ================== END Exams  ====================== //
-
-
-
-
 
 // ================== quiz  ====================== //
 const quiz_get = async (req, res) => {
   try {
     const quizId = req.params.quizId;
     const quiz = await Quiz.findById(quizId);
-    const quizUser = req.userData.quizesInfo.find(q => q._id.toString() === quiz._id.toString());
+    const quizUser = req.userData.quizesInfo.find(
+      (q) => q._id.toString() === quiz._id.toString()
+    );
 
+    console.log(quiz, quizUser);
+    if (!quiz) {
+      return res.redirect('/student/exams');
+    }
 
-    console.log(quiz, quizUser); 
-      if (!quiz) {
-        return res.redirect('/student/exams');
-
-      }
-    
-    if (!quizUser || !quiz.permissionToShow || !quiz.isQuizActive || (quizUser.isEnterd && !quizUser.inProgress)) {
+    if (
+      !quizUser ||
+      !quiz.permissionToShow ||
+      !quiz.isQuizActive ||
+      (quizUser.isEnterd && !quizUser.inProgress)
+    ) {
       return res.redirect('/student/exams');
     }
 
@@ -634,46 +783,50 @@ const quiz_get = async (req, res) => {
       return res.redirect('/student/exams');
     }
 
-      res.render("student/quiz", { title: "Quiz", path: req.path, quiz: quiz, userData: req.userData, question: null });
-
-
-
+    res.render('student/quiz', {
+      title: 'Quiz',
+      path: req.path,
+      quiz: quiz,
+      userData: req.userData,
+      question: null,
+    });
   } catch (error) {
     res.send(error.message);
   }
-}
-
+};
 
 const quizWillStart = async (req, res) => {
   try {
-    
-
     const quizId = req.params.quizId;
     const quiz = await Quiz.findById(quizId);
-    const quizUser = req.userData.quizesInfo.find(q => q._id.toString() === quiz._id.toString());
+    const quizUser = req.userData.quizesInfo.find(
+      (q) => q._id.toString() === quiz._id.toString()
+    );
 
-    const durationInMinutes = quiz.timeOfQuiz; 
-   
+    const durationInMinutes = quiz.timeOfQuiz;
+
     const endTime = new Date(Date.now() + durationInMinutes * 60000);
     console.log(endTime, durationInMinutes);
     if (!quizUser.endTime) {
       console.log(endTime, durationInMinutes);
-      await User.findOneAndUpdate({_id: req.userData._id ,  'quizesInfo._id': quiz._id  }, { $set: { 'quizesInfo.$.endTime': endTime ,'quizesInfo.$.inProgress': true } } ).then((result)=>{ 
-
+      await User.findOneAndUpdate(
+        { _id: req.userData._id, 'quizesInfo._id': quiz._id },
+        {
+          $set: {
+            'quizesInfo.$.endTime': endTime,
+            'quizesInfo.$.inProgress': true,
+          },
+        }
+      ).then((result) => {
         res.redirect(`/student/quizStart/${quizId}?qNumber=1`);
-
-      })
-    }else{
+      });
+    } else {
       res.redirect(`/student/quizStart/${quizId}?qNumber=1`);
     }
-
   } catch (error) {
-      res.send(error.message);
+    res.send(error.message);
   }
-}
-
-  
-
+};
 
 const escapeSpecialCharacters = (text) => {
   try {
@@ -697,10 +850,18 @@ const quiz_start = async (req, res) => {
   try {
     const quizId = req.params.quizId;
     const quiz = await Quiz.findById(quizId);
-    const userQuizInfo = req.userData.quizesInfo.find(q => q._id.toString() === quiz._id.toString());
-    
+    const userQuizInfo = req.userData.quizesInfo.find(
+      (q) => q._id.toString() === quiz._id.toString()
+    );
+
     // Redirect if quiz or user info not found
-    if (!quiz || !userQuizInfo || !quiz.permissionToShow || !quiz.isQuizActive || (userQuizInfo.isEnterd && !userQuizInfo.inProgress)) {
+    if (
+      !quiz ||
+      !userQuizInfo ||
+      !quiz.permissionToShow ||
+      !quiz.isQuizActive ||
+      (userQuizInfo.isEnterd && !userQuizInfo.inProgress)
+    ) {
       return res.redirect('/student/exams');
     }
 
@@ -722,9 +883,10 @@ const quiz_start = async (req, res) => {
       console.log(questionNumber);
     }
 
-
     // Find the current question and escape special characters
-    const question = quiz.Questions.find(q => q.qNumber.toString() === questionNumber.toString());
+    const question = quiz.Questions.find(
+      (q) => q.qNumber.toString() === questionNumber.toString()
+    );
 
     question.title = escapeSpecialCharacters(question.title);
     question.answer1 = escapeSpecialCharacters(question.answer1);
@@ -732,22 +894,28 @@ const quiz_start = async (req, res) => {
     question.answer3 = escapeSpecialCharacters(question.answer3);
     question.answer4 = escapeSpecialCharacters(question.answer4);
 
-    res.render("student/quizStart", { title: "Quiz", path: req.path, quiz, userData: req.userData, question, userQuizInfo });
+    res.render('student/quizStart', {
+      title: 'Quiz',
+      path: req.path,
+      quiz,
+      userData: req.userData,
+      question,
+      userQuizInfo,
+    });
   } catch (error) {
     res.send(error.message);
   }
-}
+};
 
-
-
-
-const quizFinish = async(req,res)=>{
+const quizFinish = async (req, res) => {
   try {
     const quizId = req.params.quizId;
     const quizObjId = new mongoose.Types.ObjectId(quizId);
 
     const quiz = await Quiz.findById(quizId);
-    const userQuizInfo = req.userData.quizesInfo.find(q => q._id.toString() === quiz._id.toString());
+    const userQuizInfo = req.userData.quizesInfo.find(
+      (q) => q._id.toString() === quiz._id.toString()
+    );
     const quizData = req.body;
     let answers = quizData.answers;
     const score = quizData.score;
@@ -758,70 +926,76 @@ const quizFinish = async(req,res)=>{
 
     // Update user's quiz info
     User.findOneAndUpdate(
-      {_id: req.userData._id, 'quizesInfo._id': quizObjId},
-      { 
+      { _id: req.userData._id, 'quizesInfo._id': quizObjId },
+      {
         $set: {
           'quizesInfo.$.answers': answers,
           'quizesInfo.$.Score': +score,
           'quizesInfo.$.inProgress': false,
           'quizesInfo.$.isEnterd': true,
-          'quizesInfo.$.solvedAt':  Date.now(),
-          'quizesInfo.$.endTime': 0
+          'quizesInfo.$.solvedAt': Date.now(),
+          'quizesInfo.$.endTime': 0,
         },
-        $inc: {"totalScore": +score , "totalQuestions": +quiz.questionsCount} 
+        $inc: { totalScore: +score, totalQuestions: +quiz.questionsCount },
       }
     ).then(async (result) => {
-    
-
       // Check if there's a corresponding video for the quiz in user's videosInfo
-      const videoInfo = req.userData.videosInfo.find(video => video._id === quiz.videoWillbeOpen);
+      const videoInfo = req.userData.videosInfo.find(
+        (video) => video._id === quiz.videoWillbeOpen
+      );
       if (videoInfo && !videoInfo.isUserEnterQuiz) {
         // Update the video's entry to mark it as entered by the user
         await User.findOneAndUpdate(
-          {_id: req.userData._id, 'videosInfo._id': videoInfo._id},
-          {$set: {'videosInfo.$.isUserEnterQuiz': true}}
+          { _id: req.userData._id, 'videosInfo._id': videoInfo._id },
+          { $set: { 'videosInfo.$.isUserEnterQuiz': true } }
         ).then((result) => {
           res.redirect('/student/exams');
-        })
-      }else{
+        });
+      } else {
         res.redirect('/student/exams');
       }
     });
   } catch (error) {
     res.send(error.message);
   }
-}
-
-
-
+};
 
 // ================== END quiz  ====================== //
 
-
 const settings_get = async (req, res) => {
   try {
-    res.render("student/settings", { title: "Settings", path: req.path, userData: req.userData });
+    res.render('student/settings', {
+      title: 'Settings',
+      path: req.path,
+      userData: req.userData,
+    });
   } catch (error) {
     res.send(error.message);
   }
-}
+};
 
 const settings_post = async (req, res) => {
   try {
-    const { Username, gov,userPhoto } = req.body;
+    const { Username, gov, userPhoto } = req.body;
     console.log(Username, gov);
-    const user = await User.findByIdAndUpdate(req.userData._id, { Username:Username, gov :gov ,userPhoto:userPhoto});
+    const user = await User.findByIdAndUpdate(req.userData._id, {
+      Username: Username,
+      gov: gov,
+      userPhoto: userPhoto,
+    });
 
     res.redirect('/student/settings');
-  }
-  catch (error  ) {
+  } catch (error) {
     res.send(error.message);
   }
-}
+};
 
 
 
-// ==================  END Settings  ====================== //
+// end OF SETTINGS
+
+
+
 
 // ==================  PDFs  ====================== //
 
@@ -864,8 +1038,6 @@ console.log(isPaid);
   }
 }
 
-
-
 const buyPDF = async (req, res) => {
   try {
     const pdfId = req.params.PDFID;
@@ -888,29 +1060,19 @@ const buyPDF = async (req, res) => {
 // ================== END PDFs  ====================== //
 
 
-
-
-
-
 // ================== LogOut  ====================== //
-
-
 
 const logOut = async (req, res) => {
   // Clearing the token cookie
   res.clearCookie('token');
   // Redirecting to the login page or any other desired page
   res.redirect('../login');
-}
-
+};
 
 // ================== END LogOut  ====================== //
 
-
-
 module.exports = {
   dash_get,
-
 
   chapters_get,
   buyChapter,
@@ -918,7 +1080,7 @@ module.exports = {
   sum_get,
   solv_get,
   buyVideo,
-  
+
   watch_get,
   uploadHW,
 
@@ -932,12 +1094,12 @@ module.exports = {
   quiz_start,
   quizFinish,
 
-  settings_get,
-  settings_post,
-
-  PDFs_get ,
+  PDFs_get,
   getPDF,
   buyPDF,
+
+  settings_get,
+  settings_post,
 
   logOut,
 };
