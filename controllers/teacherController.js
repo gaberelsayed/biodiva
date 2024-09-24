@@ -855,7 +855,7 @@ const getSingleUserAllData = async (req, res) => {
         createdAt: 1,
         updatedAt: 1,
         subscribe: 1,
-        PasswordNotHashed: 1,
+        PasswordWithOutHash: 1,
       }
     ).then((result) => {
       res.render('teacher/studentsRequests', {
