@@ -18,6 +18,38 @@
   <link rel="stylesheet" href="/css/Register.css">
 </head>
 
+
+<style>
+  .verificationCode{
+  
+    width: 130px !important; 
+  }
+
+  .verificationBTN {
+    background-color: #ffd900;
+    border: none;
+    color: rgb(0, 0, 0);
+    padding: 10px 15px;
+    border-radius: 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    transition: all ease 0.3s  ;
+  }
+  .verificationBTN:hover {
+    background-color: #f1f1f1;
+  }
+  .verificationBTN:disabled
+  {
+    opacity: 0.4;
+    background-color: #f1f1f1;
+    cursor: not-allowed;
+  }
+
+</style>
 <body>
 
   <%- include("./partials/nav.ejs") %>
@@ -116,15 +148,22 @@
                   <input type="text" name="Username" placeholder=" اسم الطالب بالكامل"
                     value="<%= formData.Username || '' %>" required>
                 </div>
-
+                
 
                 <div class="col-12 text-center">
-                  <input type="number" name="phone"  id="phone" 
-                    placeholder="رقم هاتف الطالب" value="<%= formData.phone || '' %>" required>
-                    <h5 class="text-warning">ده الرقم الي هتعمل بيه تسجيل دخول</h5>
-                    <h5 class="text-warning"> لازم الرقم يكون عليه واتساب</h5>
-                </div> 
+                  <input type="number" name="phone" id="phone" placeholder="رقم هاتف الطالب" required>
+
+                  <h5 class="text-warning">ده الرقم الي هتعمل بيه تسجيل دخول</h5>
+                  <h5 class="text-warning">لازم الرقم يكون عليه واتساب</h5>
+          
+
+                  <button type="button" class="verificationBTN" id="verificationBTN" onclick="sendVerificationCode()">ارسال كود تأكيد</button>
+                   <input type="number" class="verificationCode"  name="verificationCode" id="verificationCode" placeholder="كود التفعيل" required>
+          
+                </div>
+
                 
+
          
                 <div class="col-12 text-center">
                     <input type="password" name="Password"   placeholder="كلمه المرور"
@@ -227,6 +266,46 @@
       <script src="/assest/bootstrap.bundle.min.js"></script>
 
 
+
+      <script>
+        function sendVerificationCode() {
+          const phone = document.getElementById('phone').value;
+          const verificationBTN = document.getElementById('verificationBTN');
+          verificationBTN.setAttribute('disabled', 'disabled');
+          if (phone) {
+            fetch('/send-verification-code', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ phone: phone })
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                alert('تم ارسال كود التفعيل ');
+                setTimeout(() => {
+                  verificationBTN.removeAttribute('disabled');
+                }, 30000);
+              } else {
+                alert('هناك مشكله في ارسال رقم التفعيل تأكد من رقم الهاتف');
+                verificationBTN.removeAttribute('disabled');
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('هناك مشكله في ارسال رقم التفعيل تأكد من رقم الهاتف');
+              verificationBTN.removeAttribute('disabled');
+            });
+          } else {
+            alert('يرجي  ادخال رقم هاتف');
+            verificationBTN.removeAttribute('disabled');
+          }
+}
+
+      </script>
+
+
       <script>
 
 
@@ -273,6 +352,9 @@
 
 
       </script>
+
+
+
 </body>
 
 </html>
