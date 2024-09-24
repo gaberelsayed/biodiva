@@ -1,14 +1,17 @@
 const User = require("../models/User");
-
-const waapi = require('@api/waapi')
+const mongoose = require('mongoose');
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
 const  jwtSecret = process.env.JWTSECRET
 
+const { v4: uuidv4 } = require('uuid');
+const { use } = require("../routes/homeRoutes");
 
-waapi.auth('q4tooXShblvs0SnikYLQi5MSSGnsnZF7vWATV5Hxc44df884');
 
+
+
+// check Login 
 
 
 
@@ -82,16 +85,10 @@ const public_Register_post = async (req, res) => {
     phone,
     parentPhone,
     place,
-    verificationCode,
   } = req.body;
 
   // Create an object to store validation errors
   const errors = {};
-
-  // Validate verification code
-  if (req.session.verificationCode !== parseInt(verificationCode)) {
-    errors.verificationCode = '- كود التفعيل غير صحيح';
-  }
 
   // Check if the password is at least 7 characters long
   if (Password.length < 7) {
@@ -148,21 +145,22 @@ const public_Register_post = async (req, res) => {
   let quizesInfo = [];
   let videosInfo = [];
 
-  if (Grade === 'Grade1') {
-    await User.findOne({ Grade: Grade, Code: 874325 }).then((result) => {
-      quizesInfo = result.quizesInfo;
-      videosInfo = result.videosInfo;
-    });
-  } else if (Grade === 'Grade2') {
-    await User.findOne({ Grade: Grade, Code: 736624 }).then((result) => {
-      quizesInfo = result.quizesInfo;
-      videosInfo = result.videosInfo;
-    });
-  } else if (Grade === 'Grade3') {
-    await User.findOne({ Grade: Grade, Code: 887426 }).then((result) => {
-      quizesInfo = result.quizesInfo;
-      videosInfo = result.videosInfo;
-    });
+  if (Grade ==="Grade1") {
+    await User.findOne({Grade:Grade,Code:874325}).then((result)=>{
+      quizesInfo = result.quizesInfo
+      videosInfo = result.videosInfo
+
+    })
+  }else if(Grade ==="Grade2"){
+    await User.findOne({Grade:Grade,Code:736624}).then((result)=>{
+      quizesInfo = result.quizesInfo
+      videosInfo = result.videosInfo
+    })
+  }else if(Grade ==="Grade3"){
+    await User.findOne({Grade:Grade,Code:887426}).then((result)=>{
+      quizesInfo = result.quizesInfo
+      videosInfo = result.videosInfo
+    })
   }
 
   const hashedPassword = await bcrypt.hash(Password, 10);
@@ -232,45 +230,6 @@ const public_Register_post = async (req, res) => {
     }
   }
 };
-
-
-const send_verification_code = async (req, res) => {
-  try {
-    const { phone } = req.body;
-    const code = Math.floor(Math.random() * 400000 + 600000);
-    const message = `كود التحقق الخاص بك هو ${code}`;
-
-    // Send the message via the waapi (already present)
-   await waapi
-      .postInstancesIdClientActionSendMessage(
-        {
-          chatId: `2${phone}@c.us`,
-          message: message,
-        },
-        { id: '20959' }
-      )
-
-      
-      .then(({ data }) => {
-        // Store the verification code and phone in the session or database
-        req.session.verificationCode = code; // Assuming session middleware is used
-        req.session.phone = phone;
-
-        // Send a successful response after setting the session
-        res.status(201).json({ success: true, data });
-      })
-      .catch((err) => {
-        // Handle any error that occurs during the waapi call
-        console.error(err);
-        res.status(500).json({ success: false, error: err });
-      });
-  } catch (error) {
-    console.log(error);
-    res.status(500).send('Internal Server Error');
-  }
-};
-
-
 
 const forgetPassword_get = (req,res)=>{
   res.render("forgetPassword", { title: "Forget Password" ,error:null,success:null});
@@ -375,7 +334,6 @@ module.exports = {
   public_login_get,
   public_Register_get,
   public_Register_post,
-  send_verification_code,
   public_login_post,
   forgetPassword_get,
   forgetPassword_post,

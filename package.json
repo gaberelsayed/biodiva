@@ -9,7 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@api/waapi": "file:.api/apis/waapi",
     "axios": "^1.6.7",
     "bcrypt": "^5.1.1",
     "connect-mongo": "^5.1.0",
@@ -41,7 +40,6 @@
     "util": "^0.12.5",
     "uuid": "^9.0.1",
     "vimeo": "^2.3.1",
-    "waapi": "^2017.2.0",
     "whatsapp-web.js": "^1.23.0",
     "wwebjs-mongo": "^1.1.0"
   },
