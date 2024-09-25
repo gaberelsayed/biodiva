@@ -48,14 +48,14 @@
         }
         
         .spinner {
-        
-   width: 56px;
-   height: 56px;
-   border-radius: 50%;
-   background: conic-gradient(#0000 10%,#474bff);
-   -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 9px),#000 0);
-   animation: spinner-zp9dbg 1s infinite linear;
-}
+                    
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: conic-gradient(#0000 10%,#474bff);
+            -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 9px),#000 0);
+            animation: spinner-zp9dbg 1s infinite linear;
+        }
 
 #errorMessage {
     display: none;
@@ -208,10 +208,11 @@
 
                                             
                                         </div>
-                                     <h2 class=" " style="text-align: center;" id="errorMessage" >الرجاء إدخال رقم الكارت بشكل صحيح</h2>
-
+                                        <h2 class=" " style="text-align: center;" id="errorMessage" >الرجاء إدخال رقم الكارت بشكل صحيح</h2>
+                                        
                                     </div>
-                                
+                                    
+                                    <div class="spinner d-none mx-auto" id="spinnerInTabel"></div>
                                    
 
                                
@@ -266,6 +267,7 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const spinner = document.getElementById('spinner');
+       
             const studentCode = document.getElementById('studentCode').value;
             const assignedCard = document.getElementById('assignedCard').value;
             const studentNameElement = document.getElementById('studentName');
@@ -350,6 +352,7 @@
         const GroupTime = document.getElementById('GroupTime');
         const CardType = document.getElementById('CardType');
         const attendeeID = document.getElementById('attendeeID');
+        const spinnerInTabel = document.getElementById('spinnerInTabel')
         const errorMessage = document.getElementById('errorMessage');
    
         const attendUserForm = document.getElementById('attendUserForm');
@@ -358,6 +361,7 @@
 
         saveAndStart.addEventListener('click', async () => {
             // Disable the inputs
+            spinnerInTabel.classList.remove('d-none');
             CardGrade.setAttribute('disabled', 'disabled');
             centerName.setAttribute('disabled', 'disabled');
             GroupTime.setAttribute('disabled', 'disabled');
@@ -399,6 +403,7 @@
                             <td  style="padding-left: 20px;" <button class="btn btn-danger delete-btn" data-id="${student._id}">Delete</button></td>
                         `;
                         table.appendChild(row);
+                    
                     });
 
                     // Add event listeners for delete buttons
@@ -410,18 +415,21 @@
                             await deleteAttendance(studentId, rowToDelete); // Pass the row for removal
                         });
                     });
+                    spinnerInTabel.classList.add('d-none');
                 } else {
                     console.error('Failed to fetch attended users:', responseData.message);
+                    spinnerInTabel.classList.add('d-none');
                 }
             } catch (error) {
                 console.error('An error occurred:', error);
+               spinnerInTabel.classList.add('d-none');
             }
         });
         
 
         attendUserForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-
+             spinnerInTabel.classList.remove('d-none');
             const data = {
                 CardGrade: CardGrade.value,
                 centerName: centerName.value,
@@ -471,7 +479,7 @@
                             await deleteAttendance(studentId, rowToDelete); // Pass the row for removal
                         });
                     });
-                
+                     spinnerInTabel.classList.add('d-none');
                 } else {
                     errorMessage.style.display = 'block';
                     errorMessage.textContent = responseData.message || 'An error occurred. Please try again.';
@@ -480,13 +488,16 @@
                     setTimeout(() => {
                         errorMessage.style.display = 'none';
                     }, 3000);
+                   spinnerInTabel.classList.add('d-none');
                 }
             } catch (error) {
                 console.error('An error occurred:', error);
+                spinnerInTabel.classList.add('d-none');
             }
         });
 
         async function deleteAttendance(studentId, rowToDelete) {
+                 spinnerInTabel.classList.remove('d-none');
             try {
                 const data = {
                     CardGrade: CardGrade.value,
@@ -506,6 +517,7 @@
 
                 if (response.ok) {
                     rowToDelete.remove(); 
+                    spinnerInTabel.classList.add('d-none');
                 } else {
                     console.error('Failed to remove attendance:', responseData.message);
                 }
