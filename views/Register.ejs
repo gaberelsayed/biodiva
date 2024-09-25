@@ -268,41 +268,52 @@
 
 
       <script>
-        function sendVerificationCode() {
-          const phone = document.getElementById('phone').value;
-          const verificationBTN = document.getElementById('verificationBTN');
-          verificationBTN.setAttribute('disabled', 'disabled');
-          if (phone) {
-            fetch('/send-verification-code', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ phone: phone })
-            })
-            .then(response => response.json())
-            .then(data => {
-              if (data.success) {
-                alert('تم ارسال كود التفعيل ');
-                setTimeout(() => {
-                  verificationBTN.removeAttribute('disabled');
-                }, 30000);
-              } else {
-                alert('هناك مشكله في ارسال رقم التفعيل تأكد من رقم الهاتف');
-                verificationBTN.removeAttribute('disabled');
-              }
-            })
-            .catch(error => {
-              console.error('Error:', error);
-              alert('هناك مشكله في ارسال رقم التفعيل تأكد من رقم الهاتف');
-              verificationBTN.removeAttribute('disabled');
-            });
-          } else {
-            alert('يرجي  ادخال رقم هاتف');
-            verificationBTN.removeAttribute('disabled');
-          }
+     function sendVerificationCode() {
+  const phone = document.getElementById('phone').value;
+  const verificationBTN = document.getElementById('verificationBTN');
+  let countdownTime = 30; // 30 seconds countdown
+  verificationBTN.setAttribute('disabled', 'disabled');
+
+  if (phone) {
+    fetch('/send-verification-code', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ phone: phone })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('تم ارسال كود التفعيل');
+        startCountdown(verificationBTN, countdownTime);
+      } else {
+        alert('هناك مشكله في ارسال رقم التفعيل تأكد من رقم الهاتف');
+        startCountdown(verificationBTN, countdownTime);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('هناك مشكله في ارسال رقم التفعيل تأكد من رقم الهاتف');
+      startCountdown(verificationBTN, countdownTime);
+    });
+  } else {
+    alert('يرجي ادخال رقم هاتف');
+    startCountdown(verificationBTN, countdownTime);
+  }
 }
 
+function startCountdown(button, countdownTime) {
+  let timer = setInterval(() => {
+    if (countdownTime > 0) {
+      button.innerHTML = `انتظر ${countdownTime--} ثانية`; // Update button with countdown
+    } else {
+      clearInterval(timer);
+      button.innerHTML = 'ارسال كود تأكيد'; // Reset button text
+      button.removeAttribute('disabled'); // Re-enable the button
+    }
+  }, 1000); // Update every second
+}
       </script>
 
 
