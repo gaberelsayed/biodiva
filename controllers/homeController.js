@@ -1,12 +1,12 @@
 const User = require('../models/User');
 
-const waapi = require('@api/waapi');
+// const waapi = require('@api/waapi');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const jwtSecret = process.env.JWTSECRET;
 
-waapi.auth('q4tooXShblvs0SnikYLQi5MSSGnsnZF7vWATV5Hxc44df884');
+// waapi.auth('q4tooXShblvs0SnikYLQi5MSSGnsnZF7vWATV5Hxc44df884');
 
 const home_page = (req, res) => {
   res.render('index', { title: 'Home Page' });
@@ -30,23 +30,27 @@ const public_login_post = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(401).render('login', {
-        title: 'Login Page',
-        Email: '',
-        Password: null,
-        error: 'البريد الالكتروني او كلمه المرور خاطئه',
-      });
+      return res
+        .status(401)
+        .render('login', {
+          title: 'Login Page',
+          Email: '',
+          Password: null,
+          error: 'البريد الالكتروني او كلمه المرور خاطئه',
+        });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.Password);
 
     if (!isPasswordValid) {
-      return res.status(401).render('login', {
-        title: 'Login Page',
-        Email: '',
-        Password: null,
-        error: 'البريد الالكتروني او كلمه المرور خاطئه',
-      });
+      return res
+        .status(401)
+        .render('login', {
+          title: 'Login Page',
+          Email: '',
+          Password: null,
+          error: 'البريد الالكتروني او كلمه المرور خاطئه',
+        });
     }
 
     const token = jwt.sign({ userId: user._id }, jwtSecret);
@@ -90,16 +94,16 @@ const public_Register_post = async (req, res) => {
     phone,
     parentPhone,
     place,
-    verificationCode,
+    // verificationCode,
   } = req.body;
 
   // Create an object to store validation errors
   const errors = {};
 
   // Validate verification code
-  if (req.session.verificationCode !== parseInt(verificationCode)) {
-    errors.verificationCode = '- كود التفعيل غير صحيح';
-  }
+  // if (req.session.verificationCode !== parseInt(verificationCode)) {
+  //   errors.verificationCode = '- كود التفعيل غير صحيح';
+  // }
 
   // Check if the password is at least 7 characters long
   if (Password.length < 7) {
@@ -241,40 +245,40 @@ const public_Register_post = async (req, res) => {
   }
 };
 
-const send_verification_code = async (req, res) => {
-  try {
-    const { phone } = req.body;
-    const code = Math.floor(Math.random() * 400000 + 600000);
-    const message = `كود التحقق الخاص بك هو ${code}`;
+// const send_verification_code = async (req, res) => {
+//   try {
+//     const { phone } = req.body;
+//     const code = Math.floor(Math.random() * 400000 + 600000);
+//     const message = `كود التحقق الخاص بك هو ${code}`;
 
-    // Send the message via the waapi (already present)
-    await waapi
-      .postInstancesIdClientActionSendMessage(
-        {
-          chatId: `2${phone}@c.us`,
-          message: message,
-        },
-        { id: '20959' }
-      )
+//     // Send the message via the waapi (already present)
+//     await waapi
+//       .postInstancesIdClientActionSendMessage(
+//         {
+//           chatId: `2${phone}@c.us`,
+//           message: message,
+//         },
+//         { id: '20959' }
+//       )
 
-      .then(({ data }) => {
-        // Store the verification code and phone in the session or database
-        req.session.verificationCode = code; // Assuming session middleware is used
-        req.session.phone = phone;
+//       .then(({ data }) => {
+//         // Store the verification code and phone in the session or database
+//         req.session.verificationCode = code; // Assuming session middleware is used
+//         req.session.phone = phone;
 
-        // Send a successful response after setting the session
-        res.status(201).json({ success: true, data });
-      })
-      .catch((err) => {
-        // Handle any error that occurs during the waapi call
-        console.error(err);
-        res.status(500).json({ success: false, error: err });
-      });
-  } catch (error) {
-    console.log(error);
-    res.status(500).send('Internal Server Error');
-  }
-};
+//         // Send a successful response after setting the session
+//         res.status(201).json({ success: true, data });
+//       })
+//       .catch((err) => {
+//         // Handle any error that occurs during the waapi call
+//         console.error(err);
+//         res.status(500).json({ success: false, error: err });
+//       });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).send('Internal Server Error');
+//   }
+// };
 
 const forgetPassword_get = (req, res) => {
   res.render('forgetPassword', {
