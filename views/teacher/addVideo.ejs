@@ -136,7 +136,8 @@
                         </div>
 
                         <div class="row addToChapterStructure">
-                            <h1>Add To Chapter</h1>
+                          <h1>Add To Chapter - > عدد الفيديوهات : <span id="mediaCount"></span></h1>
+
 
                             <h2 id="waiting" style="display: none;">wait please ...</h2>
 
@@ -477,9 +478,26 @@ const getQueryStringParameter = (name) => {
 <script >
     const BTNvideoUpload = document.getElementById("BtnVideoUpload");
 
-const apiKey = 'd9ef90b04427df0132e7cb273da8a51761ccd355d430b905511512471002496b';
-const projectId = 'ms2ijmtve3'; 
+const apiKey = '3f0935f58dfacc2603bce1da33605cd6cb27b3f80c9cfb4e365246107f19e428';
+const projectId = 'v1hmxwnv7u'; 
 let embded 
+
+const options = {
+  method: 'GET',
+  headers: {
+    accept: 'application/json',
+    authorization: `Bearer ${apiKey}`
+  }
+};
+
+fetch('https://api.wistia.com/v1/projects', options)
+  .then(response => response.json())
+  .then(response => {
+    const mediaCount  = document.getElementById('mediaCount')
+    mediaCount.innerHTML = response[0].mediaCount
+  })
+  .catch(err => console.error(err));
+
 
 
 function uploadVideo() {
