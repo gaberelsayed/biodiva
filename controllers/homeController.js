@@ -5,8 +5,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const jwtSecret = process.env.JWTSECRET;
-
-waapi.auth('q4tooXShblvs0SnikYLQi5MSSGnsnZF7vWATV5Hxc44df884');
+const waapiAPI = process.env.WAAPIAPI;
+waapi.auth(`${waapiAPI}`);
 
 const home_page = (req, res) => {
   res.render('index', { title: 'Home Page' });
@@ -94,16 +94,16 @@ const public_Register_post = async (req, res) => {
     phone,
     parentPhone,
     place,
-    // verificationCode,
+    verificationCode,
   } = req.body;
 
   // Create an object to store validation errors
   const errors = {};
 
-  // // Validate verification code
-  // if (req.session.verificationCode !== parseInt(verificationCode)) {
-  //   errors.verificationCode = '- كود التفعيل غير صحيح';
-  // }
+  // Validate verification code
+  if (req.session.verificationCode !== parseInt(verificationCode)) {
+    errors.verificationCode = '- كود التفعيل غير صحيح';
+  }
 
   // Check if the password is at least 7 characters long
   if (Password.length < 7) {
@@ -258,7 +258,7 @@ const send_verification_code = async (req, res) => {
           chatId: `2${phone}@c.us`,
           message: message,
         },
-        { id: '20959' }
+        { id: '21299' }
       )
 
       .then(({ data }) => {

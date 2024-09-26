@@ -6,9 +6,14 @@ const Card = require('../models/Card');
 const Attendance = require('../models/Attendance'); 
 const mongoose = require('mongoose');
 
+const waapi = require('@api/waapi');
+const waapiAPI = process.env.WAAPIAPI;
+waapi.auth(`${waapiAPI}`);
+
 const Excel = require('exceljs');
 
 const { v4: uuidv4 } = require('uuid');
+const { result } = require('lodash');
 
 const dash_get = (req, res) => {
   //   const idsToKeep = [
@@ -2621,6 +2626,38 @@ const convertAttendanceToExcel = async (req, res) => {
       GroupTime: GroupTime,
       Date: new Date().toISOString().split('T')[0], // Check attendance for today
     }).populate('Students', { Username: 1, Code: 1, phone: 1, parentPhone: 1 });
+    let nphone = 0
+    req.io.emit('sendingToParents', {
+      nPhone: nphone,
+    });
+
+    attendanceRecord['Students'].forEach(async(student) => {
+   
+      let message = 
+      `
+        تم حضور الطالب : ${student.Username} الان في سنتر ${centerName} في مجموعه الساعه ${GroupTime}
+      `
+      await waapi
+        .postInstancesIdClientActionSendMessage(
+          {
+            chatId: `2${student.parentPhone}@c.us`,
+            message: message,
+          },
+          { id: '21299' }
+        )
+        .then((result) => {
+          req.io.emit('sendingToParents', {
+            nPhone: ++nphone,
+          });
+        });
+
+    });
+
+
+
+  
+
+
 
     if (!attendanceRecord) {
       return res.status(404).json({ message: 'No attendance record found for this session.' });
