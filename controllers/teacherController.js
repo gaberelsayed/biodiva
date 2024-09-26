@@ -2866,6 +2866,81 @@ const convertAttendeesToExcel = async (req, res) => {
 
 
 
+// =================================================== Whats App =================================================== //
+
+const whatsApp_get = (req,res)=>{
+  res.render('teacher/whatsApp', { title: 'whatsApp', path: req.path });
+}
+
+
+const sendGradeMessages = async (req, res) => {
+  const { phoneCloumnName, gradeCloumnName, dataToSend, quizName } = req.body;
+
+  let n = 0;
+  req.io.emit('sendingMessages', {
+    nMessages: n,
+  });
+
+  try {
+
+  
+      dataToSend.forEach(async (student) => {
+        console.log(
+          quizName,
+          student,
+          student[gradeCloumnName],
+          student[phoneCloumnName]
+        );
+    let message = `
+    عزيزي ولي الأمر،
+    نود إبلاغكم بأنه تم تسجيل درجة ابنكم بنجاح في امتحان : ${quizName}.
+    
+    الدرجة التي حصل عليها: ${student[gradeCloumnName]}.
+    
+    نتمنى لابنكم المزيد من التفوق والنجاح.
+    
+    مع تحيات فريق التعليم.
+`;
+
+        await waapi
+          .postInstancesIdClientActionSendMessage(
+            {
+              chatId: `20${student[phoneCloumnName]}@c.us`,
+              message: message,
+            },
+            { id: '21299' }
+          )
+          .then((result) => {
+            console.log(result);
+            req.io.emit('sendingMessages', {
+              nMessages: ++n,
+            });
+          })
+          .catch((err) => {
+            console.error(err);
+           
+          });
+      });
+      
+
+
+
+
+    res.status(200).json({ message: 'Messages sent successfully' });
+  }
+  catch (error) {
+    console.error('Error sending messages:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+
+};
+
+
+// =================================================== END Whats App =================================================== //
+
+
+
+
 // =================================================== Log Out =================================================== //
 
 
@@ -2949,6 +3024,11 @@ module.exports = {
   getDates,
   getAttendees,
   convertAttendeesToExcel,
+
+  // WhatsApp
+
+  whatsApp_get,
+  sendGradeMessages,
 
   logOut,
 };

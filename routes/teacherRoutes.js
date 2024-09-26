@@ -250,4 +250,14 @@ router.post('/handelAttendance/getAttendees', authMiddleware, teacherController.
 router.post('/handelAttendance/convertAttendeesToExcel', authMiddleware, teacherController.convertAttendeesToExcel);
 
 
+// ================== Whats App ====================== //
+
+router.get('/whatsApp', authMiddleware, teacherController.whatsApp_get);
+
+router.post('/sendGradeMessages', authMiddleware, teacherController.sendGradeMessages);
+
+
+
+
+
 module.exports = router;
