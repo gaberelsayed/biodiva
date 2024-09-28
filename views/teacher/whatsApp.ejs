@@ -3,10 +3,9 @@
 
     <%- include("./partials/head.ejs") %>
 
-
 <body>
 
-       <style>
+    <style>
         * {
             box-sizing: border-box;
             margin: 0;
@@ -14,11 +13,9 @@
             font-family: 'Arial', sans-serif;
         }
 
-
-
         .upload-container {
-            background-color:transparent; /* Transparent background */
-            border: 2px solid #e3b228; /* Border */
+            background-color: transparent;
+            border: 2px solid #e3b228;
             border-radius: 10px;
             padding: 30px;
             width: 100%;
@@ -54,12 +51,8 @@
             color: rgb(0, 0, 0);
         }
 
-        .file-label i {
-            margin-right: 8px;
-        }
-
         #file {
-            display: none; /* Hide the actual file input */
+            display: none;
         }
 
         .upload-btn {
@@ -79,105 +72,123 @@
             color: rgb(0, 0, 0);
             transform: scale(1.05);
         }
-            .output {
+
+        .output {
             margin-top: 20px;
             text-align: left;
         }
-    </style>
 
+        .hidden {
+            display: none;
+        }
+    </style>
 
     <div class="container-fluid">
         <div class="row">
-            <div class="col-lg-2" >
+            <div class="col-lg-2">
                 <%- include("./partials/nav.ejs") %>
             </div>
-            <!--------------------END ASIDE  ------------------>
 
-            <div class="col-lg-10 ">
-
+            <div class="col-lg-10">
                 <main>
-                   
                     <div class="row">
+                        <div class="col-md-6"></div>
+
                         <div class="col-md-6">
-           
-                        </div>
-                      
-                        <div class=" col-md-6 ">
                             <div class="left" style="margin-top: 0.2rem;">
-                                <%- include("./partials/top.ejs") %> 
-
-                             
-                          
-                     
-
+                                <%- include("./partials/top.ejs") %>
                             </div>
                         </div>
                     </div>
 
-    
-
                     <div class="row">
-                        
-                 
                         <div class="col-md-2 mb-4">
-                            <select name="chapterGrade" class="Grade w-100 text-center" required>
+                            <select name="chapterGrade" id="optionSelect" class="Grade w-100 text-center" required>
                                 <option value="">اختر نوع الارسال </option>
                                 <option value="msgWithoutPhoto">ارسال رسائل بدون صوره</option>
-                                <option value="msgWithPhoto">ارسال رسائل  بصوره</option>
-                                <option value="gradeMsg"> ارسال درجات  </option>
-                        </select>
+                                <option value="msgWithPhoto">ارسال رسائل بصوره</option>
+                                <option value="gradeMsg">ارسال درجات</option>
+                            </select>
+                        </div>
+                        <hr>
 
-                        </div>
-                        <hr >
-                          <div class="col-md-4 mb-4">
-                            <input type="text" id="quizName" class="form-control" placeholder="اسم الامتحان " >
-                        </div>
-
-                        <div class="col-md-4 mb-4">
-                            <input type="text" id="phoneCloumnName" class="form-control" placeholder="اكتب اسم ال cloumn بتاع الارقام" >
-                        </div>
-                        <div class="col-md-4 mb-4">
-                            <input type="text" id="gradeCloumnName" class="form-control" placeholder="اكتب اسم ال cloumn بتاع الدرجات">
+                        <!-- Section for "ارسال رسائل بدون صوره" -->
+                        <div id="msgWithoutPhotoSection" class="hidden">
+                            <div class="col-md-4 mb-4">
+                                <input type="text" class="form-control" placeholder="اسم الرسالة">
+                            </div>
                         </div>
 
-                    <div class="upload-container">
-                        <h1>رفع شيت الاكسل</h1>
-                        <div class="file-input-wrapper">
-                            <label for="file" class="file-label" id="fileLabel">
-                                <i class="fas fa-upload"></i> اختر الملف لرفعه
-                            </label>
-                            <input type="file" id="file" name="file" required onchange="updateFileName()">
+                        <!-- Section for "ارسال رسائل بصوره" -->
+                        <div id="msgWithPhotoSection" class="hidden">
+                            <div class="col-md-4 mb-4">
+                                <input type="file" class="form-control" placeholder="اختر الصورة">
+                            </div>
                         </div>
-                        <button class="upload-btn" onclick="handleFile()">رفع الملف</button>
-                        
-                        <div class="output" id="output"></div>
-                        <h2 class="warning d-none" id="numberOfSend"></h2>
+
+                        <!-- Section for "ارسال درجات" -->
+                        <div id="gradeMsgSection" class="hidden">
+                            <div class="col-md-4 mb-4">
+                                <input type="text" id="quizName" class="form-control" placeholder="اسم الامتحان">
+                            </div>
+
+                            <div class="col-md-4 mb-4">
+                                <input type="text" id="phoneCloumnName" class="form-control" placeholder="اكتب اسم ال cloumn بتاع الارقام">
+                            </div>
+                            <div class="col-md-4 mb-4">
+                                <input type="text" id="gradeCloumnName" class="form-control" placeholder="اكتب اسم ال cloumn بتاع الدرجات">
+                            </div>
+
+                            <div class="upload-container">
+                                <h1>رفع شيت الاكسل</h1>
+                                <div class="file-input-wrapper">
+                                    <label for="file" class="file-label" id="fileLabel">
+                                        <i class="fas fa-upload"></i> اختر الملف لرفعه
+                                    </label>
+                                    <input type="file" id="file" name="file" required onchange="updateFileName()">
+                                </div>
+                                <button class="upload-btn" onclick="handleFile()">رفع الملف</button>
+
+                                <div class="output" id="output"></div>
+                                <h2 class="warning d-none" id="numberOfSend"></h2>
+                            </div>
+                        </div>
                     </div>
-                                                
-
-                        
-                    </div>
-                   
                 </main>
-
             </div>
-
-
-            <!-------------------- END OF MAIN --------------------->
-         
         </div>
     </div>
 
-
-
     <script src="../assest/bootstrap.bundle.min.js"></script>
     <script src="../assest/bootstrap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script>
-        const phoneCloumnName = document.getElementById('phoneCloumnName');
-        const gradeCloumnName = document.getElementById('gradeCloumnName'); 
-        const quizName = document.getElementById('quizName');
+        const optionSelect = document.getElementById('optionSelect');
+        const msgWithoutPhotoSection = document.getElementById('msgWithoutPhotoSection');
+        const msgWithPhotoSection = document.getElementById('msgWithPhotoSection');
+        const gradeMsgSection = document.getElementById('gradeMsgSection');
+
+        // Event listener to show/hide sections based on selection
+        optionSelect.addEventListener('change', function () {
+            const selectedValue = optionSelect.value;
+
+            // Hide all sections initially
+            msgWithoutPhotoSection.classList.add('hidden');
+            msgWithPhotoSection.classList.add('hidden');
+            gradeMsgSection.classList.add('hidden');
+
+            // Show corresponding section
+            if (selectedValue === 'msgWithoutPhoto') {
+                msgWithoutPhotoSection.classList.remove('hidden');
+            } else if (selectedValue === 'msgWithPhoto') {
+                msgWithPhotoSection.classList.remove('hidden');
+            } else if (selectedValue === 'gradeMsg') {
+                gradeMsgSection.classList.remove('hidden');
+            }
+        });
+
+        // Function to handle file reading
         function updateFileName() {
             const input = document.getElementById('file');
             const fileLabel = document.getElementById('fileLabel');
@@ -213,29 +224,30 @@
 
                 // Update label to indicate that the file is uploaded
                 fileLabel.innerHTML = `<i class="fas fa-check-circle"></i> ${file.name} (Uploaded)`;
-                fileLabel.style.color = "green"; // Change color to indicate success
+                fileLabel.style.color = "green";
             };
 
             reader.readAsArrayBuffer(file);
         }
 
-        // Function to display the extracted data
+        // Function to send the data
         async function displayDataAndSend(data) {
-         const output = document.getElementById('output');
- 
+            const output = document.getElementById('output');
 
+            output.innerHTML = 'data is being sent...';
+            const phoneCloumnName = document.getElementById('phoneCloumnName');
+            const gradeCloumnName = document.getElementById('gradeCloumnName');
+            const quizName = document.getElementById('quizName');
 
-         output.innerHTML = 'data is being sent...';
             if (!phoneCloumnName.value || !gradeCloumnName.value) {
                 alert('ادخل اسامي ال cloumn');
                 return;
-                
             }
 
             const dataSend = {
-                phoneCloumnName: phoneCloumnName.value ,
-                gradeCloumnName: gradeCloumnName.value ,
-                quizName :quizName.value,
+                phoneCloumnName: phoneCloumnName.value,
+                gradeCloumnName: gradeCloumnName.value,
+                quizName: quizName.value,
                 dataToSend: data
             };
 
@@ -250,41 +262,32 @@
 
                 const responseData = await response.json();
 
-
                 if (response.ok) {
-
                     output.innerHTML = `<h2>تم الارسال بنجاح</h2>`;
                     output.style.color = "green";
                 } else {
                     output.innerHTML = `<h2>حدث خطأ أثناء الارسال</h2>`;
                     output.style.color = "red";
                 }
-
             } catch (error) {
                 console.error('Error:', error);
                 output.innerHTML = `<h2>حدث خطأ أثناء الارسال</h2>`;
                 output.style.color = "red";
             }
-
-
-
-
-   
         }
     </script>
-<script src="/socket.io/socket.io.js"></script>
+
+    <script src="/socket.io/socket.io.js"></script>
     <script>
-        const numberOfSend = document.getElementById('numberOfSend')
-      
+        const numberOfSend = document.getElementById('numberOfSend');
         const socket = io();
 
         socket.on('sendingMessages', (data) => {
-             numberOfSend.classList.remove('d-none');
+            numberOfSend.classList.remove('d-none');
             numberOfSend.innerHTML = `تم ارسال ${data.nMessages} رساله`;
         });
     </script>
-    
-</body>
 
+</body>
 
 </html>
