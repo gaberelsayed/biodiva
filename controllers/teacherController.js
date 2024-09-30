@@ -2888,15 +2888,18 @@ const sendGradeMessages = async (req, res) => {
         console.log(
           quizName,
           student,
-          // student[gradeCloumnName],
+          student[gradeCloumnName],
           student[phoneCloumnName]
         );
             let message = `
-        الديفا جابتلك الحل حصه فرفوشه نعنوشه فيها الدرس الاول كله عشان تذاكر و تبقي شاطر 🩷🩷https://youtu.be/nIiHu7B4GrM?si=kGByL1VSNW20gdsR
-        كمان ممكن تعمل ملخص للدرس زي الدكاتره بقي و تنزل الملخص ده علي جروب الفيس بوك بتاعنا
-        https://www.facebook.com/share/g/LoC1vZCU7iqXqwyU/?mibextid=K35XfP
-        و لو شايف دمك خفيف عاملينلك بردو مسابقه احلي كوميك ياخد ريتش  بردو بتنزله علي جروب الفيس بوك😅❤️
-        "مع البايوديفا العلوم المتكامله خفيفه😉❤️"
+                عزيزي ولي الأمر،
+    نود إبلاغكم بأنه تم تسجيل درجة ابنكم بنجاح في امتحان : ${quizName}.
+    
+    الدرجة التي حصل عليها: ${student[gradeCloumnName]}.
+    
+    نتمنى لابنكم المزيد من التفوق والنجاح.
+    
+    مع تحيات فريق التعليم.
         `;
 
         await waapi
@@ -2905,7 +2908,7 @@ const sendGradeMessages = async (req, res) => {
               chatId: `20${student[phoneCloumnName]}@c.us`,
               message: message,
             },
-            { id: '21299' }
+            { id: '21606' }
           )
           .then((result) => {
             console.log(result);
@@ -2915,7 +2918,6 @@ const sendGradeMessages = async (req, res) => {
           })
           .catch((err) => {
             console.error(err);
-           
           });
       });
       
