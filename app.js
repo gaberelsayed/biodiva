@@ -41,7 +41,8 @@ mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
             console.log(`New connection: ${socket.id}`);
         })
 
-        console.log("Dadad")
+        console.log("Local Host Running on port 8000")
+    
     }).catch((err) => {
         console.log(err)
     })

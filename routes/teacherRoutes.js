@@ -255,6 +255,7 @@ router.post('/handelAttendance/convertAttendeesToExcel', authMiddleware, teacher
 router.get('/whatsApp', authMiddleware, teacherController.whatsApp_get);
 
 router.post('/sendGradeMessages', authMiddleware, teacherController.sendGradeMessages);
+router.post('/sendMessages', authMiddleware, teacherController.sendMessages);
 
 
 
