@@ -951,7 +951,7 @@ const quizFinish = async (req, res) => {
       تمني لكم كل التفوق والنجاح
 
       `
-
+      console.log(message, req.userData.parentPhone);
      
      await waapi
        .postInstancesIdClientActionSendMessage(
@@ -962,7 +962,7 @@ const quizFinish = async (req, res) => {
          { id: '21299' }
        )
        .then((result) => {
-          console.log(result);
+         console.log(result);
        });
 
 
