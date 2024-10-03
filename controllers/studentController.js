@@ -7,9 +7,9 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const jwtSecret = process.env.JWTSECRET;
 
-const Excel = require('exceljs');
-const PDFDocument = require('pdfkit');
-const stream = require('stream');
+const waapi = require('@api/waapi');
+const waapiAPI = process.env.WAAPIAPI;
+waapi.auth(`${waapiAPI}`);
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -939,6 +939,33 @@ const quizFinish = async (req, res) => {
         $inc: { totalScore: +score, totalQuestions: +quiz.questionsCount },
       }
     ).then(async (result) => {
+      
+      let message =
+  
+      `
+      تحياتي لكم من BioDiva
+
+      تم حل الاختبار بنجاح للطالب ${req.userData.Username} ، وقد حصل على ${score} من ${quiz.questionsCount} نقطة
+      اسم الاختبار: ${quiz.quizName}
+
+      تمني لكم كل التفوق والنجاح
+
+      `
+
+     
+     await waapi
+       .postInstancesIdClientActionSendMessage(
+         {
+           chatId: `2${req.userData.parentPhone}@c.us`,
+           message: message,
+         },
+         { id: '21299' }
+       )
+       .then((result) => {
+          console.log(result);
+       });
+
+
       // Check if there's a corresponding video for the quiz in user's videosInfo
       const videoInfo = req.userData.videosInfo.find(
         (video) => video._id === quiz.videoWillbeOpen
