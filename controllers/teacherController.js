@@ -2874,7 +2874,7 @@ const whatsApp_get = (req,res)=>{
 
 
 const sendGradeMessages = async (req, res) => {
-  const { phoneCloumnName, gradeCloumnName, dataToSend, quizName } = req.body;
+  const { phoneCloumnName, gradeCloumnName,nameCloumnName ,dataToSend, quizName } = req.body;
 
   let n = 0;
   req.io.emit('sendingMessages', {
@@ -2892,7 +2892,8 @@ const sendGradeMessages = async (req, res) => {
           student[phoneCloumnName]
         );
             let message = `
-                عزيزي ولي الأمر،
+                عزيزي ولي امر الطالب : ${student[nameCloumnName]}.
+                
     نود إبلاغكم بأنه تم تسجيل درجة ابنكم بنجاح في امتحان : ${quizName}.
     
     الدرجة التي حصل عليها: ${student[gradeCloumnName]}.

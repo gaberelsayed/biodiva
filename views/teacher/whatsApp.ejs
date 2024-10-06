@@ -159,6 +159,9 @@
                             <div class="col-md-4 mb-4">
                                 <input type="text" id="gradeCloumnName" class="form-control" placeholder="اكتب اسم ال cloumn بتاع الدرجات">
                             </div>
+                            <div class="col-md-4 mb-4">
+                                <input type="text" id="nameCloumnName" class="form-control" placeholder="اكتب اسم ال cloumn بتاع اسماء الطلاب">
+                            </div>
 
                             <div class="upload-container">
                                 <h1>رفع شيت الاكسل</h1>
@@ -259,9 +262,10 @@
             output.innerHTML = 'data is being sent...';
             const phoneCloumnName = document.getElementById('phoneCloumnName');
             const gradeCloumnName = document.getElementById('gradeCloumnName');
+            const nameCloumnName = document.getElementById('nameCloumnName');
             const quizName = document.getElementById('quizName');
 
-            if (!phoneCloumnName.value || !gradeCloumnName.value) {
+            if (!phoneCloumnName.value || !gradeCloumnName.value , !nameCloumnName.value) {
                 alert('ادخل اسامي ال cloumn');
                 return;
             }
@@ -269,6 +273,7 @@
             const dataSend = {
                 phoneCloumnName: phoneCloumnName.value,
                 gradeCloumnName: gradeCloumnName.value,
+                nameCloumnName: nameCloumnName.value,
                 quizName: quizName.value,
                 dataToSend: data
             };
