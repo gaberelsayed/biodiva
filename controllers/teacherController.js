@@ -2935,7 +2935,7 @@ const sendGradeMessages = async (req, res) => {
 
 };
 const sendMessages = async (req, res) => {
-  const { phoneCloumnName, dataToSend, message } = req.body;
+  const { phoneCloumnName, nameCloumnName, dataToSend, message } = req.body;
 
   let n = 0;
   req.io.emit('sendingMessages', {
@@ -2953,6 +2953,11 @@ const sendMessages = async (req, res) => {
           message
         );
           
+        let message = `
+        عزيزي الطالب : ${student[nameCloumnName]}.
+  ${message}
+        `;
+
 
         await waapi
           .postInstancesIdClientActionSendMessage(
