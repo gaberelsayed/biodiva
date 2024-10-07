@@ -2953,7 +2953,7 @@ const sendMessages = async (req, res) => {
           message
         );
           
-        let message = `
+        let theMessage = `
         عزيزي الطالب : ${student[nameCloumnName]}.
   ${message}
         `;
@@ -2962,8 +2962,8 @@ const sendMessages = async (req, res) => {
         await waapi
           .postInstancesIdClientActionSendMessage(
             {
-              chatId: `20${student[phoneCloumnName]}@c.us`,
-              message: message,
+              chatId: `2${student[phoneCloumnName]}@c.us`,
+              message: theMessage,
             },
             { id: '22432' }
           )
