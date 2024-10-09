@@ -123,13 +123,21 @@
                                                 <td><%= counter %></td>
                                                 <td><%=student.Username %></td>
                                                 <td><%=student.Code %></td>
-                                                <td><%=student['quizesInfo'][0].solvedAt ||"1/10"%></td>
+                                                <td><%=student['quizesInfo'][0].solvedAt ||"لم يحل الامتحان بعد"%></td>
+
+                                                <% if (student['quizesInfo'][0].solvedAt) { %>
+                                                    
                                                 <td><%=student['quizesInfo'][0].questionsCount %> / <%=  student['quizesInfo'][0].Score %> </td>
                                                 <form action="/teacher/changeEnterToQuiz/<%= student['quizesInfo'][0]['_id'] %>?UserId=<%= student._id %>" method="post">
                                                     <div class="text-center">
                                                         <td><button class="btn btn-outline-light" style="border-radius: 10px !important;">فتح من جديد</button></td>
                                                     </div>
                                                 </form>
+                                                <% } else { %>
+                                                      <td>لا يوجد</td>
+                                            
+                                                    <% } %>
+
                                             </tr>
                                             <% counter++; %>
                                        <% }) %>

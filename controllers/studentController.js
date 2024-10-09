@@ -959,7 +959,7 @@ const quizFinish = async (req, res) => {
            chatId: `2${req.userData.parentPhone}@c.us`,
            message: message,
          },
-         { id: '21299' }
+         { id: '22432' }
        )
        .then((result) => {
          console.log(result);

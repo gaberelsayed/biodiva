@@ -1532,7 +1532,7 @@ const getQuizzesNames = async (req, res) => {
 const getStudentsDataOfQuiz = async (req, res) => {
   try {
     const { quizID } = req.query;
-    let perPage = 50;
+    let perPage = 10000;
     let page = req.query.page || 1;
 
     const objectId = new mongoose.Types.ObjectId(quizID);
@@ -1607,7 +1607,7 @@ const searchForUserInQuiz = async (req, res) => {
           quizesInfo: {
             $elemMatch: {
               _id: QuizId,
-              isEnterd: true,
+        
             },
           },
         },
@@ -1634,13 +1634,13 @@ const searchForUserInQuiz = async (req, res) => {
       },
     ])
     .then((result) => {
-      console.log(result);
+      console.log(result.length);
 
       res.render('teacher/handleQuizzes', {
         title: 'handleQuizzes',
         path: req.path,
         quizzesNamesData: null,
-        studetsData: result,
+        studetsData: result.length > 0 ? result : null,
         quizID: null,
         nextPage: null,
         previousPage: null,
