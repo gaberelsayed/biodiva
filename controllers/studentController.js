@@ -2,6 +2,7 @@ const Quiz = require('../models/Quiz');
 const User = require('../models/User');
 const Chapter = require('../models/Chapter');
 const Code = require('../models/Code');
+const PDFs = require('../models/PDFs');
 const mongoose = require('mongoose');
 
 const jwt = require('jsonwebtoken');
