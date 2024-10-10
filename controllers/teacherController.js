@@ -3,6 +3,7 @@ const User = require('../models/User');
 const Chapter = require('../models/Chapter');
 const Code = require('../models/Code');
 const Card = require('../models/Card');
+const PDF = require('../models/PDFs');
 const Attendance = require('../models/Attendance'); 
 const mongoose = require('mongoose');
 
@@ -348,7 +349,7 @@ const getSingleVideoAllData = async (req, res) => {
   try {
     VideoID = req.params.videoCode;
     let videoData;
-    let perPage = 50;
+    let perPage = 300;
     let page = req.query.page || 1;
     console.log(page);
     Chapter.findOne(
