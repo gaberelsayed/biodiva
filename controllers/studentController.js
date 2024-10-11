@@ -921,11 +921,40 @@ const quizFinish = async (req, res) => {
     let answers = quizData.answers;
     const score = quizData.score;
 
+    // Calculate the percentage score
+    const scorePercentage = (score / quiz.questionsCount) * 100;
+
+    // If user has already entered and quiz is not in progress, redirect
     if (userQuizInfo.isEnterd && !userQuizInfo.inProgress) {
       return res.redirect('/student/exams');
     }
 
-    // Update user's quiz info
+    // If the score is less than 60%, don't update quiz info, allow retry
+    if (scorePercentage < 60) {
+      console.log('Score is less than 60%');  
+          User.findOneAndUpdate(
+            { _id: req.userData._id, 'quizesInfo._id': quizObjId },
+            {
+              $set: {
+                
+                'quizesInfo.$.Score':null,
+                'quizesInfo.$.inProgress': false,
+                'quizesInfo.$.isEnterd': false,
+                'quizesInfo.$.solvedAt': null,
+                'quizesInfo.$.endTime': null,
+              },
+              
+            }
+          ).then((result) => {
+           console.log(result);
+          }).catch((error) => {
+            res.send(error.message);
+          });
+     
+      return res.redirect('/student/exams');
+    }
+
+    // Update user's quiz info if score is 60% or above
     User.findOneAndUpdate(
       { _id: req.userData._id, 'quizesInfo._id': quizObjId },
       {
@@ -940,33 +969,6 @@ const quizFinish = async (req, res) => {
         $inc: { totalScore: +score, totalQuestions: +quiz.questionsCount },
       }
     ).then(async (result) => {
-      
-      let message =
-  
-      `
-      تحياتي لكم من BioDiva
-
-      تم حل الاختبار بنجاح للطالب ${req.userData.Username} ، وقد حصل على ${score} من ${quiz.questionsCount} نقطة
-      اسم الاختبار: ${quiz.quizName}
-
-      تمني لكم كل التفوق والنجاح
-
-      `
-      console.log(message, req.userData.parentPhone);
-     
-     await waapi
-       .postInstancesIdClientActionSendMessage(
-         {
-           chatId: `2${req.userData.parentPhone}@c.us`,
-           message: message,
-         },
-         { id: '22432' }
-       )
-       .then((result) => {
-         console.log(result);
-       });
-
-
       // Check if there's a corresponding video for the quiz in user's videosInfo
       const videoInfo = req.userData.videosInfo.find(
         (video) => video._id === quiz.videoWillbeOpen
@@ -987,6 +989,7 @@ const quizFinish = async (req, res) => {
     res.send(error.message);
   }
 };
+
 
 // ================== END quiz  ====================== //
 
