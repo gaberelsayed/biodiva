@@ -2874,8 +2874,16 @@ const whatsApp_get = (req,res)=>{
 }
 
 
+const delay2 = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const sendGradeMessages = async (req, res) => {
-  const { phoneCloumnName, gradeCloumnName,nameCloumnName ,dataToSend, quizName } = req.body;
+  const {
+    phoneCloumnName,
+    gradeCloumnName,
+    nameCloumnName,
+    dataToSend,
+    quizName,
+  } = req.body;
 
   let n = 0;
   req.io.emit('sendingMessages', {
@@ -2883,58 +2891,61 @@ const sendGradeMessages = async (req, res) => {
   });
 
   try {
+    for (const student of dataToSend) {
+     
 
-  
-      dataToSend.forEach(async (student) => {
-        console.log(
-          quizName,
-          student,
-          student[gradeCloumnName],
-          student[phoneCloumnName]
+      let message = `
+        عزيزي ولي امر الطالب : ${student[nameCloumnName]}.
+        
+        نود إبلاغكم بأنه تم تسجيل درجة ابنكم بنجاح في امتحان : ${quizName}.
+        
+        الدرجة التي حصل عليها: ${student[gradeCloumnName]}.
+        
+        نتمنى لابنكم المزيد من التفوق والنجاح.
+        
+        مع تحيات فريق التعليم.
+      `;
+
+      try {
+        await waapi.postInstancesIdClientActionSendMessage(
+          {
+            chatId: `20${student[phoneCloumnName]}@c.us`,
+            message: message,
+          },
+          { id: '23175' }
         );
-            let message = `
-                عزيزي ولي امر الطالب : ${student[nameCloumnName]}.
-                
-    نود إبلاغكم بأنه تم تسجيل درجة ابنكم بنجاح في امتحان : ${quizName}.
-    
-    الدرجة التي حصل عليها: ${student[gradeCloumnName]}.
-    
-    نتمنى لابنكم المزيد من التفوق والنجاح.
-    
-    مع تحيات فريق التعليم.
-        `;
 
-        await waapi
-          .postInstancesIdClientActionSendMessage(
-            {
-              chatId: `20${student[phoneCloumnName]}@c.us`,
-              message: message,
-            },
-            { id: '23175' }
-          )
-          .then((result) => {
-            console.log(result);
-            req.io.emit('sendingMessages', {
-              nMessages: ++n,
-            });
-          })
-          .catch((err) => {
-            console.error(err);
-          });
-      });
-      
+        console.log('Message sent successfully');
+        req.io.emit('sendingMessages', {
+          nMessages: ++n,
+        });
 
+        // Add delay between messages to prevent getting banned
+        await delay2(10000); // 3-second delay between messages
+      } catch (err) {
+        console.error('Error sending message:', err);
 
-
+        // Optional: Handle specific errors based on status code
+        if (err.response && err.response.status === 429) {
+          console.error('Rate limit reached, slowing down...');
+          await delay2(10000); // 10-second delay if rate-limited
+        } else if (err.response && err.response.status === 403) {
+          console.error('Account banned or number blocked:', err);
+          // Optional: Add logic to notify admin about the issue
+        }
+      }
+    }
 
     res.status(200).json({ message: 'Messages sent successfully' });
-  }
-  catch (error) {
-    console.error('Error sending messages:', error);
+  } catch (error) {
+    console.error('Error in sending grade messages:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
-
 };
+
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const sendMessages = async (req, res) => {
   const { phoneCloumnName, nameCloumnName, dataToSend, message } = req.body;
 
@@ -2944,53 +2955,43 @@ const sendMessages = async (req, res) => {
   });
 
   try {
+    for (const student of dataToSend) {
+      console.log(student, student[phoneCloumnName], message);
 
-  
-      dataToSend.forEach(async (student) => {
-    
-        console.log( 
-          student,
-          student[phoneCloumnName],
-          message
-        );
-          
-        let theMessage = `
-        عزيزي الطالب : ${student[nameCloumnName]}.
-  ${message}
-        `;
+      let theMessage = `
+      عزيزي الطالب : ${student[nameCloumnName]}.
+      ${message}
+      `;
 
-
-        await waapi
-          .postInstancesIdClientActionSendMessage(
-            {
-              chatId: `2${student[phoneCloumnName]}@c.us`,
-              message: theMessage,
-            },
-            { id: '23175' }
-          )
-          .then((result) => {
-            console.log(result);
-            req.io.emit('sendingMessages', {
-              nMessages: ++n,
-            });
-          })
-          .catch((err) => {
-            console.error(err);
+      await waapi
+        .postInstancesIdClientActionSendMessage(
+          {
+            chatId: `2${student[phoneCloumnName]}@c.us`,
+            message: theMessage,
+          },
+          { id: '23175' }
+        )
+        .then((result) => {
+          console.log(result);
+          req.io.emit('sendingMessages', {
+            nMessages: ++n,
           });
-      });
-      
+        })
+        .catch((err) => {
+          console.error(err);
+        });
 
-
-
+      // Add delay to avoid getting banned
+      await delay(10000); // 10 seconds delay
+    }
 
     res.status(200).json({ message: 'Messages sent successfully' });
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Error sending messages:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
-
 };
+
 
 
 // =================================================== END Whats App =================================================== //
