@@ -2644,7 +2644,7 @@ const convertAttendanceToExcel = async (req, res) => {
             chatId: `2${student.parentPhone}@c.us`,
             message: message,
           },
-          { id: '22432' }
+          { id: '23175' }
         )
         .then((result) => {
           req.io.emit('sendingToParents', {
@@ -2910,7 +2910,7 @@ const sendGradeMessages = async (req, res) => {
               chatId: `20${student[phoneCloumnName]}@c.us`,
               message: message,
             },
-            { id: '22432' }
+            { id: '23175' }
           )
           .then((result) => {
             console.log(result);
@@ -2966,7 +2966,7 @@ const sendMessages = async (req, res) => {
               chatId: `2${student[phoneCloumnName]}@c.us`,
               message: theMessage,
             },
-            { id: '22432' }
+            { id: '23175' }
           )
           .then((result) => {
             console.log(result);

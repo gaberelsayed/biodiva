@@ -160,7 +160,7 @@
     <script src="/assest/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.2/jquery.min.js" integrity="sha512-tWHlutFnuG0C6nQRlpvrEhE4QpkG1nn2MOUMWmUeRePl4e3Aki0VB6W1v3oLjFtd0hVOtRQ9PHpSfN6u6/QXkQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-    <script>
+   <script>
 
 
   // ================== side bar  ====== ///
@@ -188,35 +188,49 @@
 
 
       // ==================  end side bar  ====== ///
+// ==================  Set up variables and local storage  ========= ///
 
-
-      // ==================  Set up variblaes and local storage  ========= ///
-
-      let answers = [];
-      let qNumber= null
+let answers = [];
+let qNumber = null;
+let endTime = null; // Initialize endTime variable
 
 // Load answers from localStorage
-    if (localStorage.getItem("answers")) {
-      try {
-        answers = JSON.parse(localStorage.getItem("answers"));
-      } catch (error) {
-        console.error("Error parsing answers from localStorage:", error);
-      }
+if (localStorage.getItem("answers")) {
+  try {
+    answers = JSON.parse(localStorage.getItem("answers"));
+  } catch (error) {
+    console.error("Error parsing answers from localStorage:", error);
+  }
 }
-    const quizData = <%- JSON.stringify(quiz) %>;
-      const question =<%- JSON.stringify(question) %>;
-      const userQuizInfo = <%- JSON.stringify(userQuizInfo) %>;
 
-      
-     // ==================  Set up variblaes and local storage  ====== ///
+// Load endTime from localStorage if it exists
+if (localStorage.getItem("endTime")) {
+  try {
+    endTime = new Date(localStorage.getItem("endTime"));
+  } catch (error) {
+    console.error("Error parsing endTime from localStorage:", error);
+  }
+}
 
-      // ==================  Timer  ====== ///
+const quizData = <%- JSON.stringify(quiz) %>;
+const question = <%- JSON.stringify(question) %>;
+const userQuizInfo = <%- JSON.stringify(userQuizInfo) %>;
 
-       // Calculate endTime based on current time plus the duration
-          const endTime = new Date(userQuizInfo.endTime);
+// If endTime is not yet stored in localStorage, store it
+if (!endTime && userQuizInfo.endTime) {
+  endTime = new Date(userQuizInfo.endTime);
+  localStorage.setItem("endTime", endTime);
+}
 
-        // Start a setInterval function to update the remaining time
-        let intervalId = setInterval(() => {
+// ==================  Timer  ====== ///
+
+// Ensure the timer doesn't start if the quiz time has already expired
+if (endTime - Date.now() <= 0) {
+  // Time is already up, finish the quiz immediately
+  finish(); 
+} else {
+  // Start a setInterval function to update the remaining time
+  let intervalId = setInterval(() => {
     const remainingTime = endTime - Date.now();
     const minutes = Math.floor(remainingTime / 60000);
     const seconds = Math.floor((remainingTime % 60000) / 1000);
@@ -229,278 +243,192 @@
     document.getElementById("minutes").innerText = formattedMinutes;
     document.getElementById("seconds").innerText = formattedSeconds;
 
+    // Stop the timer and finish if time has run out
     if (remainingTime <= 0) {
-        clearInterval(intervalId);
-        finish();
+      clearInterval(intervalId);
+      finish();  // Call your finish logic
     }
-}, 1000); // Update every second
-
-        if (endTime - Date.now() <= 0 ) {
-          clearInterval(intervalId);
-          finish ()
-        }
-      // ==================  Timer  ====== ///
-
-        
+  }, 1000); // Update every second
+}
+// ==================  Timer  ====== ///
 
 
- 
-      // Check if the question and qNumber exist
-      if (question && question.qNumber) { 
-        qNumber = +question.qNumber;
-      }   
-
-      // Check if the current question number is equal to the total number of questions
-      if (qNumber == quizData.questionsCount) {
-        document.querySelector("#next").style.display = "none";
-        document.querySelector("#finish").removeAttribute("disabled");
-      } else if (qNumber == 1) {
-        document.querySelector("#prev").style.display = "none";
-      }
-
-      // Update the question in progress display
-      document.getElementById("QuestionInProgress").innerHTML = qNumber || 0;
-
-
-
-    if (question==null) {
-          document.getElementById("StartQuiz").addEventListener('click', () => {
-          qNumber ++
-          window.location.href = `/student/quizStart/${quizData._id}?qNumber=${qNumber}`;
-
-          localStorage.setItem("QuizID", `${quizData._id}`)
-
-       
-          document.getElementById("mySidebar").style.display = "inline"
-          document.getElementById("main").style.display = "inline"
-
-          })
-
-      }
-
-   
-      
-
-      if (qNumber >= 1 ) {
-        
-        localStorage.setItem("QuizID", `${quizData._id}`)
-        updateQuestion(question) 
-
-        document.getElementById("mySidebar").style.display = "inline"
-        document.getElementById("main").style.display = "inline"
-
-      }
-
-
-
-
-
-      document.getElementById("next").addEventListener('click', () => {
-        setTimeout(() => {
-          next();
-       }, 1);
-
-        // updateQuestion(question)
-      })
-
-
-      document.getElementById("prev").addEventListener('click', () => {
-        setTimeout(() => {
-        
-           prev();
-        }, 1);
-   
-      
-      })
-
-
-      document.getElementById("finish").addEventListener('click', () => {
-        document.getElementById("finish").setAttribute('disabled',true)
-
-        setTimeout(() => {
-          finish();
-
-        }, 1);
-      })
-
-      function next() {
-        setTimeout(() => {
-            const selectedOption = document.querySelector('input[name="answer"]:checked');
-            if (selectedOption) {
-                answers[qNumber] = Number(selectedOption.value);
-                questionSec.innerHTML = `     <div class="spinner mx-auto mb-4"></div>`
-
-            } else {
-              questionSec.innerHTML = `     <div class="spinner mx-auto mb-4"></div>`
-                console.log("No option selected!");
-            }
-        
-        document.querySelector("#prev").style.display = "inline";
-        qNumber++
-        console.log(answers)
-        localStorage.setItem("answers", JSON.stringify(answers));
-    
-        if (qNumber === quizData.questionsCount) {
-          document.querySelector("#next").style.display = "none";
-          document.querySelector("#finish").removeAttribute("disabled");
-          localStorage.setItem("answers", JSON.stringify(answers));
-        }
-        window.location.href = `/student/quizStart/${quizData._id}?qNumber=${qNumber}`;
-        }, 100); // Delay of 100 milliseconds
-    }
-      // function next() {
-      //   // save the answer
- 
-      //   const selectedOption = document.querySelector(
-      //     'input[name="answer"]:checked'
-      //   );
-      //   if (selectedOption) {
-      //     answers[qNumber] = Number(selectedOption.value);
-      //     console.log("Fasfasfasfasf")
-
-      //   }
-
-
-      //   // questionSec.innerHTML = `     <div class="spinner mx-auto mb-4"></div>`
-      //   document.querySelector("#prev").style.display = "inline";
-      //   qNumber++
-      //   console.log(answers)
-      //   localStorage.setItem("answers", JSON.stringify(answers));
-    
-      //   if (qNumber === quizData.questionsCount) {
-      //     document.querySelector("#next").style.display = "none";
-      //     document.querySelector("#finish").removeAttribute("disabled");
-      //     localStorage.setItem("answers", JSON.stringify(answers));
-      //   }
-      //   window.location.href = `/student/quizStart/${quizData._id}?qNumber=${qNumber}`;
-      // }
-      
-      function prev() {
-
-          const selectedOption = document.querySelector(
-          'input[name="answer"]:checked'
-        );
-        console.log(selectedOption)
-        if (selectedOption) {
-          answers[qNumber] = Number(selectedOption.value);
-          questionSec.innerHTML = `     <div class="spinner mx-auto mb-4"></div>`
-
-
-        }else{
-          questionSec.innerHTML = `     <div class="spinner mx-auto mb-4"></div>`
-
-        }
-
-
-        document.querySelector("#prev").style.display = "inline";
-        qNumber--
-        localStorage.setItem("answers", JSON.stringify(answers));
-
-        if (qNumber ==1) {
-          document.querySelector("#prev").style.display = "none";
- 
-          localStorage.setItem("answers", JSON.stringify(answers));
-        }
-        window.location.href = `/student/quizStart/${quizData._id}?qNumber=${qNumber}`;
-      }
-
-  function finish (){
-      const selectedOption = document.querySelector(
-              'input[name="answer"]:checked'
-            );
-            if (selectedOption) {
-              answers[qNumber] = Number(selectedOption.value);
-          
-
-            }
-      localStorage.setItem("answers", JSON.stringify(answers));
-      const numCorrect = calculateCorrectAnswers();
-      const totalQuestions = quizData.questionsCount;
-      const grade = (numCorrect / totalQuestions) * 100;
- 
-      const requestData = {
-        grade: grade,
-        score: numCorrect,
-        answers : answers,
-
- 
-   
-      };
-
-      console.log(requestData)
-      if (grade >= 60 ) {
-        document.getElementById("successModalGrade").innerText = numCorrect;
-        document.getElementById("successModalTotalQuestions").innerText = totalQuestions;
-        document.getElementById("successmodelbtn").click();
-      } else {
-        document.getElementById("failModalGrade").innerText = numCorrect;
-        document.getElementById("failModalTotalQuestions").innerText = totalQuestions;
-        document.getElementById("failmodelbtn").click();
-      }
-    
-  
-      $.post("", requestData, (data, status) => {
-        localStorage.clear("answers");
-        
-      });
-
-
-
+// Check if the question and qNumber exist
+if (question && question.qNumber) {
+  qNumber = +question.qNumber;
 }
 
+// Check if the current question number is equal to the total number of questions
+if (qNumber == quizData.questionsCount) {
+  document.querySelector("#next").style.display = "none";
+  document.querySelector("#finish").removeAttribute("disabled");
+} else if (qNumber == 1) {
+  document.querySelector("#prev").style.display = "none";
+}
 
+// Update the question in progress display
+document.getElementById("QuestionInProgress").innerHTML = qNumber || 0;
 
+if (question == null) {
+  document.getElementById("StartQuiz").addEventListener('click', () => {
+    qNumber++;
+    window.location.href = `/student/quizStart/${quizData._id}?qNumber=${qNumber}`;
 
+    localStorage.setItem("QuizID", `${quizData._id}`);
+
+    document.getElementById("mySidebar").style.display = "inline";
+    document.getElementById("main").style.display = "inline";
+  });
+}
+
+if (qNumber >= 1) {
+  localStorage.setItem("QuizID", `${quizData._id}`);
+  updateQuestion(question);
+
+  document.getElementById("mySidebar").style.display = "inline";
+  document.getElementById("main").style.display = "inline";
+}
+
+// Debounced Next Button Handler
+let nextButtonDisabled = false;
+document.getElementById("next").addEventListener('click', () => {
+  if (!nextButtonDisabled) {
+    nextButtonDisabled = true;
+    setTimeout(() => {
+      nextButtonDisabled = false;
+      next(); // Call next logic
+    }, 500); // Debounce time of 500ms
+  }
+});
+
+// Debounced Previous Button Handler
+let prevButtonDisabled = false;
+document.getElementById("prev").addEventListener('click', () => {
+  if (!prevButtonDisabled) {
+    prevButtonDisabled = true;
+    setTimeout(() => {
+      prevButtonDisabled = false;
+      prev(); // Call previous logic
+    }, 500); // Debounce time of 500ms
+  }
+});
+
+document.getElementById("finish").addEventListener('click', () => {
+  document.getElementById("finish").setAttribute('disabled', true);
+
+  setTimeout(() => {
+    finish();
+  }, 1);
+});
+
+function next() {
+  setTimeout(() => {
+    const selectedOption = document.querySelector('input[name="answer"]:checked');
+    if (selectedOption) {
+      answers[qNumber] = Number(selectedOption.value);
+      questionSec.innerHTML = `<div class="spinner mx-auto mb-4"></div>`;
+    } else {
+      questionSec.innerHTML = `<div class="spinner mx-auto mb-4"></div>`;
+      console.log("No option selected!");
+    }
+
+    document.querySelector("#prev").style.display = "inline";
+    qNumber++;
+    console.log(answers);
+    localStorage.setItem("answers", JSON.stringify(answers));
+
+    if (qNumber === quizData.questionsCount) {
+      document.querySelector("#next").style.display = "none";
+      document.querySelector("#finish").removeAttribute("disabled");
+      localStorage.setItem("answers", JSON.stringify(answers));
+    }
+    window.location.href = `/student/quizStart/${quizData._id}?qNumber=${qNumber}`;
+  }, 100); // Delay of 100 milliseconds
+}
+
+function prev() {
+  const selectedOption = document.querySelector('input[name="answer"]:checked');
+  if (selectedOption) {
+    answers[qNumber] = Number(selectedOption.value);
+    questionSec.innerHTML = `<div class="spinner mx-auto mb-4"></div>`;
+  } else {
+    questionSec.innerHTML = `<div class="spinner mx-auto mb-4"></div>`;
+  }
+
+  document.querySelector("#prev").style.display = "inline";
+  qNumber--;
+  localStorage.setItem("answers", JSON.stringify(answers));
+
+  if (qNumber == 1) {
+    document.querySelector("#prev").style.display = "none";
+    localStorage.setItem("answers", JSON.stringify(answers));
+  }
+  window.location.href = `/student/quizStart/${quizData._id}?qNumber=${qNumber}`;
+}
+
+function finish() {
+  const selectedOption = document.querySelector('input[name="answer"]:checked');
+  if (selectedOption) {
+    answers[qNumber] = Number(selectedOption.value);
+  }
+  localStorage.setItem("answers", JSON.stringify(answers));
+  const numCorrect = calculateCorrectAnswers();
+  const totalQuestions = quizData.questionsCount;
+  const grade = (numCorrect / totalQuestions) * 100;
+
+  const requestData = {
+    grade: grade,
+    score: numCorrect,
+    answers: answers,
+  };
+
+  console.log(requestData);
+  if (grade >= 50) {
+    document.getElementById("successModalGrade").innerText = numCorrect;
+    document.getElementById("successModalTotalQuestions").innerText = totalQuestions;
+    document.getElementById("successmodelbtn").click();
+  } else {
+    document.getElementById("failModalGrade").innerText = numCorrect;
+    document.getElementById("failModalTotalQuestions").innerText = totalQuestions;
+    document.getElementById("failmodelbtn").click();
+  }
+
+  $.post("", requestData, (data, status) => {
+    localStorage.clear("answers");
+    window.location.href = `/student/exams`;
+  });
+}
 
 function calculateCorrectAnswers() {
   let numCorrect = 0;
   let c = 1;
-  quizData["Questions"].forEach(question => {
-    
-    answers[c] == +(question.ranswer) ? numCorrect++ : null;
-    c++
-    });
-
+  quizData["Questions"].forEach((question) => {
+    answers[c] == +(question.correctAnswer) ? numCorrect++ : console.log();
+    c++;
+  });
   return numCorrect;
 }
 
-
-async function updateQuestion() {
-  // Show loader
-
-  let questionSec = document.getElementById("questionSec");
- 
-      // document.getElementById("questionSec").style.display = "inline";
-    if(question.questionPhoto!=""){
-          
-      questionSec.innerHTML = `
-      <div class="box-img mb-3">
-    <img src="${question.questionPhoto}" >
-    </div>
+async function updateQuestion(question) {
+  let questionSec = document.querySelector("#questionSec");
+  questionSec.innerHTML = `
     <h1 class="questionSec" id="titleOfQuestion">${question.title}</h1>
-    <input type="radio" name="answer" class="RD form-check-input" value="1" id="answer1" ${answers[qNumber] === 1 ? "checked" : ""}><label for="answer1" class="text">${await question.answer1}</label><br/>
-    <input type="radio" name="answer" class="RD form-check-input" value="2" id="answer2" ${answers[qNumber] === 2 ? "checked" : ""}><label for="answer2" class="text">${await question.answer2}</label><br/>
-    <input type="radio" name="answer" class="RD form-check-input" value="3" id="answer3" ${answers[qNumber] === 3 ? "checked" : ""}><label for="answer3" class="text">${await question.answer3}</label><br/>
-    <input type="radio" name="answer" class="RD form-check-input" value="4" id="answer4" ${answers[qNumber] === 4 ? "checked" : ""}><label for="answer4" class="text">${await question.answer4}</label><br/>
-      `;
-    }else{
-      questionSec.innerHTML = `
-
-    <h1 class="questionSec" id="titleOfQuestion">${question.title}</h1>
-    <input type="radio" name="answer" class="RD form-check-input" value="1" id="answer1" ${answers[qNumber] === 1 ? "checked" : ""}><label for="answer1" class="text">${await question.answer1}</label><br/>
-    <input type="radio" name="answer" class="RD form-check-input" value="2" id="answer2" ${answers[qNumber] === 2 ? "checked" : ""}><label for="answer2" class="text">${await question.answer2}</label><br/>
-    <input type="radio" name="answer" class="RD form-check-input" value="3" id="answer3" ${answers[qNumber] === 3 ? "checked" : ""}><label for="answer3" class="text">${await question.answer3}</label><br/>
-    <input type="radio" name="answer" class="RD form-check-input" value="4" id="answer4" ${answers[qNumber] === 4 ? "checked" : ""}><label for="answer4" class="text">${await question.answer4}</label><br/>
-      `;
-    }
-      
-      
-    
-
-
-
-  // Hide loader once the question is loaded
+      <input type="radio" name="answer" class="RD form-check-input" value="1" id="answer1" ${
+        answers[qNumber] === 1 ? "checked" : ""
+      }><label for="answer1" class="text">${await question.answer1}</label><br/>
+      <input type="radio" name="answer" class="RD form-check-input" value="2" id="answer2" ${
+        answers[qNumber] === 2 ? "checked" : ""
+      }><label for="answer2" class="text">${await question.answer2}</label><br/>
+      <input type="radio" name="answer" class="RD form-check-input" value="3" id="answer3" ${
+        answers[qNumber] === 3 ? "checked" : ""
+      }><label for="answer3" class="text">${await question.answer3}</label><br/>
+      <input type="radio" name="answer" class="RD form-check-input" value="4" id="answer4" ${
+        answers[qNumber] === 4 ? "checked" : ""
+      }><label for="answer4" class="text">${await question.answer4}</label><br/>
+    `;
 }
+
+
 
 
 
