@@ -2928,7 +2928,7 @@ const sendGradeMessages = async (req, res) => {
         // Optional: Handle specific errors based on status code
         if (err.response && err.response.status === 429) {
           console.error('Rate limit reached, slowing down...');
-          await delay2(10000); // 10-second delay if rate-limited
+          await delay2(2300); // 10-second delay if rate-limited
         } else if (err.response && err.response.status === 403) {
           console.error('Account banned or number blocked:', err);
           // Optional: Add logic to notify admin about the issue
@@ -2982,7 +2982,7 @@ const sendMessages = async (req, res) => {
         });
 
       // Add delay to avoid getting banned
-      await delay(10000); // 10 seconds delay
+      await delay(2300); // 10 seconds delay
     }
 
     res.status(200).json({ message: 'Messages sent successfully' });
