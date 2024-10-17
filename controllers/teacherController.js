@@ -1436,6 +1436,7 @@ const quizSubmit = (req, res) => {
               inProgress: false,
               solvedAt: null,
               solveTime: null,
+              endTime : null,
               isQuizPrepaid: prepaidStatus == 'Pay' ? true : false,
               quizPurchaseStatus: prepaidStatus == 'Pay' ? false : true,
               answers: [],
