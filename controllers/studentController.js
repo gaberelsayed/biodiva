@@ -773,7 +773,7 @@ const quiz_get = async (req, res) => {
     if (
       !quizUser ||
       !quiz.permissionToShow ||
-      !quiz.isQuizActive ||
+   
       (quizUser.isEnterd && !quizUser.inProgress)
     ) {
       return res.redirect('/student/exams');
@@ -809,7 +809,7 @@ const quizWillStart = async (req, res) => {
     const endTime = new Date(Date.now() + durationInMinutes * 60000);
     console.log(endTime, durationInMinutes);
     if (!quizUser.endTime) {
-      console.log(endTime, durationInMinutes);
+      console.log(quizUser.endTime);
       await User.findOneAndUpdate(
         { _id: req.userData._id, 'quizesInfo._id': quiz._id },
         {
@@ -819,6 +819,7 @@ const quizWillStart = async (req, res) => {
           },
         }
       ).then((result) => {
+        console.log(result);
         res.redirect(`/student/quizStart/${quizId}?qNumber=1`);
       });
     } else {
@@ -860,7 +861,6 @@ const quiz_start = async (req, res) => {
       !quiz ||
       !userQuizInfo ||
       !quiz.permissionToShow ||
-      !quiz.isQuizActive ||
       (userQuizInfo.isEnterd && !userQuizInfo.inProgress)
     ) {
       return res.redirect('/student/exams');
@@ -989,6 +989,55 @@ const quizFinish = async (req, res) => {
     res.send(error.message);
   }
 };
+
+
+
+const review_Answers = async (req, res) => {
+  try {
+    const quizId = req.params.quizId;
+    const quizObjId = new mongoose.Types.ObjectId(quizId);
+    const quiz = await Quiz.findById(quizId);
+    const userQuizInfo = req.userData.quizesInfo.find(
+      (q) => q._id.toString() === quiz._id.toString()
+    );
+    const quizData = req.body;
+
+    // Redirect if quiz or user info not found
+    if (!quiz.permissionToShow) {
+      return res.redirect('/student/exams');
+    }
+
+    // Parse query parameter for question number
+    let questionNumber = parseInt(req.query.qNumber) || 1;
+    if (questionNumber > quiz.questionsCount) {
+      questionNumber = quiz.questionsCount;
+      console.log(questionNumber);
+    }
+
+    // Find the current question and escape special characters
+    const question = quiz.Questions.find(
+      (q) => q.qNumber.toString() === questionNumber.toString()
+    );
+
+    question.title = escapeSpecialCharacters(question.title);
+    question.answer1 = escapeSpecialCharacters(question.answer1);
+    question.answer2 = escapeSpecialCharacters(question.answer2);
+    question.answer3 = escapeSpecialCharacters(question.answer3);
+    question.answer4 = escapeSpecialCharacters(question.answer4);
+
+    res.render('student/reviewAnswers', {
+      title: 'Quiz',
+      path: req.path,
+      quiz,
+      userData: req.userData,
+      question,
+      userQuizInfo,
+    });
+  } catch (error) {
+    res.send(error.message);
+  }
+};
+
 
 
 // ================== END quiz  ====================== //
@@ -1124,6 +1173,7 @@ module.exports = {
   quizWillStart,
   quiz_start,
   quizFinish,
+  review_Answers,
 
   PDFs_get,
   getPDF,

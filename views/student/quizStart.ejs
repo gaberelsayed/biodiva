@@ -203,53 +203,35 @@ if (localStorage.getItem("answers")) {
   }
 }
 
-// Load endTime from localStorage if it exists
-if (localStorage.getItem("endTime")) {
-  try {
-    endTime = new Date(localStorage.getItem("endTime"));
-  } catch (error) {
-    console.error("Error parsing endTime from localStorage:", error);
-  }
-}
 
 const quizData = <%- JSON.stringify(quiz) %>;
 const question = <%- JSON.stringify(question) %>;
 const userQuizInfo = <%- JSON.stringify(userQuizInfo) %>;
 
-// If endTime is not yet stored in localStorage, store it
-if (!endTime && userQuizInfo.endTime) {
-  endTime = new Date(userQuizInfo.endTime);
-  localStorage.setItem("endTime", endTime);
-}
+endTime = new Date(userQuizInfo.endTime).getTime(); // Set endTime from userQuizInfo
 
-// ==================  Timer  ====== ///
-
-// Ensure the timer doesn't start if the quiz time has already expired
-if (endTime - Date.now() <= 0) {
-  // Time is already up, finish the quiz immediately
-  finish(); 
-} else {
-  // Start a setInterval function to update the remaining time
-  let intervalId = setInterval(() => {
-    const remainingTime = endTime - Date.now();
-    const minutes = Math.floor(remainingTime / 60000);
-    const seconds = Math.floor((remainingTime % 60000) / 1000);
-
-    // Format minutes and seconds with leading zeros if needed
-    const formattedMinutes = String(minutes).padStart(2, '0');
-    const formattedSeconds = String(seconds).padStart(2, '0');
-
-    // Update the DOM with formatted time
-    document.getElementById("minutes").innerText = formattedMinutes;
-    document.getElementById("seconds").innerText = formattedSeconds;
-
-    // Stop the timer and finish if time has run out
-    if (remainingTime <= 0) {
-      clearInterval(intervalId);
-      finish();  // Call your finish logic
+// ==================  Timer  ============== //
+ // Timer setup with proper server time sync
+  function updateTimer() {
+    if (!endTime || endTime - Date.now() <= 0) {
+      finish();
+    } else {
+      let intervalId = setInterval(() => {
+        const remainingTime = endTime - Date.now();
+        if (remainingTime <= 0) {
+          clearInterval(intervalId);
+          finish();
+        }
+        const minutes = Math.floor(remainingTime / 60000);
+        const seconds = Math.floor((remainingTime % 60000) / 1000);
+        document.getElementById("minutes").innerText = String(minutes).padStart(2, '0');
+        document.getElementById("seconds").innerText = String(seconds).padStart(2, '0');
+      }, 1000);
     }
-  }, 1000); // Update every second
-}
+  }
+
+
+
 // ==================  Timer  ====== ///
 
 
