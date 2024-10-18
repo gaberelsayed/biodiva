@@ -213,8 +213,7 @@
                                                     </div>
                                                     <div class="selction">
 
-                                                        <input type="text" name="videoURL" style="width: 1px !important; background: transparent;" id="videoURL"
-                                                            value="">
+                                                      
                                                         <input type="text" name="imgURL" class="d-none" id="imgURL"
                                                             value="">
                                                         <select name="paymentStatus" id="paymentStatus" class="Grade"
@@ -283,6 +282,9 @@
 
                                     </div>
 
+                                    
+                                    <input type="text" name="videoURL" style="background-color: transparent; border: 1px solid #fff; color: #fff; border-radius: 10px; width: 272px !important; text-align: center;height: 30px;" id="videoURL" value="" placeholder="اضف لينك Embded هنا" required>
+
 
                                     <div class="col-md-3 mt-2 mx-auto">
                                         <button class="generate_Video_Boxs_Btn" id="generate_Video_Box_Btn"> Add Video
@@ -308,7 +310,7 @@
                                 </div>
 
                             </div>
-                            <div class="col-6">
+                            <!-- <div class="col-6">
                                 <div class="video-uploder">
                                     <div class="upload">
                                         <button class="warning BTN_Upload" type="button" id="BtnVideoUpload"
@@ -320,7 +322,7 @@
                                     </div>
                                 </div>
 
-                            </div>
+                            </div> -->
 
 
                             <!-- <div class="col-6">
@@ -389,20 +391,21 @@ const sdieMenu = document.querySelector("aside");
         console.error('Socket.IO connection error:', error);
     });
 
-    // Listen for the 'videoLink' event from the server
-    socket.on('videoLink', (data) => {
-        console.log('Received video link:', data);
-        const videoURLInput = document.getElementById('videoURL');
-        if (videoURLInput) {
+    // // Listen for the 'videoLink' event from the server
+    // socket.on('videoLink', (data) => {
+    //     console.log('Received video link:', data);
+    //     const videoURLInput = document.getElementById('videoURL');
+    //     if (videoURLInput) {
        
-            videoURLInput.setAttribute('value', data.videoLink)
-            document.getElementById('generate_Video_Box_Btn').disabled = false;
-            console.log('Video URL set successfully:', data.videoLink);
-        } else {
-            console.error('Element with id "videoURL" not found in the DOM.');
-        }
-    });
-const getQueryStringParameter = (name) => {
+    //         videoURLInput.setAttribute('value', data.videoLink)
+    //         document.getElementById('generate_Video_Box_Btn').disabled = false;
+    //         console.log('Video URL set successfully:', data.videoLink);
+    //     } else {
+    //         console.error('Element with id "videoURL" not found in the DOM.');
+    //     }
+    // });
+
+    const getQueryStringParameter = (name) => {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(name);
           };
@@ -500,55 +503,55 @@ fetch('https://api.wistia.com/v1/projects', options)
 
 
 
-function uploadVideo() {
-    BTNvideoUpload.setAttribute("disabled",true)
-    const fileInput = document.getElementById('selbtnVideo');
-    // const statusDiv = document.getElementById('status');
+// function uploadVideo() {
+//     BTNvideoUpload.setAttribute("disabled",true)
+//     const fileInput = document.getElementById('selbtnVideo');
+//     // const statusDiv = document.getElementById('status');
     
-    const file = fileInput.files[0];
+//     const file = fileInput.files[0];
     
-    if (!file) {
-        // statusDiv.textContent = 'Please select a file to upload.';
-        return;
-    }
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('project_id', projectId);
+//     if (!file) {
+//         // statusDiv.textContent = 'Please select a file to upload.';
+//         return;
+//     }
+//       const formData = new FormData();
+//       formData.append('file', file);
+//       formData.append('project_id', projectId);
   
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', 'https://upload.wistia.com', true);
-      xhr.timeout = 6993130000; // Set the timeout to 60 seconds (adjust as needed)
+//       const xhr = new XMLHttpRequest();
+//       xhr.open('POST', 'https://upload.wistia.com', true);
+//       xhr.timeout = 6993130000; // Set the timeout to 60 seconds (adjust as needed)
 
-      xhr.setRequestHeader('Authorization', `Bearer ${apiKey}`);
+//       xhr.setRequestHeader('Authorization', `Bearer ${apiKey}`);
   
-      xhr.upload.addEventListener('progress', (e) => {
-          if (e.lengthComputable) {
+//       xhr.upload.addEventListener('progress', (e) => {
+//           if (e.lengthComputable) {
             
-              const percentComplete = (e.loaded / e.total) * 100;
-              BTNvideoUpload.innerHTML = percentComplete.toFixed(2)+"%";
-          }
-      });
+//               const percentComplete = (e.loaded / e.total) * 100;
+//               BTNvideoUpload.innerHTML = percentComplete.toFixed(2)+"%";
+//           }
+//       });
   
-      xhr.onreadystatechange = () => {
-          if (xhr.readyState === 4) {
-              if ( xhr.status >= 200) {
-                  const responseData = JSON.parse(xhr.responseText);
-                  console.log(`Video uploaded successfully! Video ID: ${responseData.hashed_id}`) ;
-                   embded = `<div class="wistia_responsive_wrapper" style="height:100%;left:0;position:absolute;top:0;width:100%;"><div class="wistia_embed wistia_async_${responseData.hashed_id} seo=true videoFoam=true" style="height:100%;position:relative;width:100%"><div class="wistia_swatch" style="height:100%;left:0;opacity:0;overflow:hidden;position:absolute;top:0;transition:opacity 200ms;width:100%;"><img src="https://fast.wistia.com/embed/medias/${responseData.hashed_id}/swatch" style="filter:blur(5px);height:100%;object-fit:contain;width:100%;" alt="" aria-hidden="true" onload="this.parentNode.style.opacity=1;" /></div></div></div>`
-                   console.log(embded)
-                   document.getElementById('videoURL').setAttribute('value', embded)
-                   BTNvideoUpload.innerHTML = "تم الرفع"
-                //    uploadAllDataBtn.removeAttribute("disabled")
-              } else {
-                alert(`Error uploading video. Status: ${xhr.status}`) 
-              }
-          }
-      };
+//       xhr.onreadystatechange = () => {
+//           if (xhr.readyState === 4) {
+//               if ( xhr.status >= 200) {
+//                   const responseData = JSON.parse(xhr.responseText);
+//                   console.log(`Video uploaded successfully! Video ID: ${responseData.hashed_id}`) ;
+//                    embded = `<div class="wistia_responsive_wrapper" style="height:100%;left:0;position:absolute;top:0;width:100%;"><div class="wistia_embed wistia_async_${responseData.hashed_id} seo=true videoFoam=true" style="height:100%;position:relative;width:100%"><div class="wistia_swatch" style="height:100%;left:0;opacity:0;overflow:hidden;position:absolute;top:0;transition:opacity 200ms;width:100%;"><img src="https://fast.wistia.com/embed/medias/${responseData.hashed_id}/swatch" style="filter:blur(5px);height:100%;object-fit:contain;width:100%;" alt="" aria-hidden="true" onload="this.parentNode.style.opacity=1;" /></div></div></div>`
+//                    console.log(embded)
+//                    document.getElementById('videoURL').setAttribute('value', embded)
+//                    BTNvideoUpload.innerHTML = "تم الرفع"
+//                 //    uploadAllDataBtn.removeAttribute("disabled")
+//               } else {
+//                 alert(`Error uploading video. Status: ${xhr.status}`) 
+//               }
+//           }
+//       };
   
-      xhr.send(formData);
+//       xhr.send(formData);
     
 
-}
+// }
 
 
 </script>
@@ -730,15 +733,15 @@ Dropzone.options.myDropzone = {
                             document.getElementById('imgURL').setAttribute('value', imgUrl)
                             document.getElementById('BtnPhotoUpload').innerHTML = "تم الرفع"
 
-                            document.getElementById('BtnVideoUpload').removeAttribute('disabled')
+                            // document.getElementById('BtnVideoUpload').removeAttribute('disabled')
                         });
                     }
                 );
             }
 
-            document.getElementById('BtnVideoUpload').addEventListener('click',()=>{
-                document.getElementById('BtnVideoUpload').innerHTML = "يتم التجهيز للرفع برجاء عدم اغلاق الصفحه نهائيا"
-            })
+            // document.getElementById('BtnVideoUpload').addEventListener('click',()=>{
+            //     document.getElementById('BtnVideoUpload').innerHTML = "يتم التجهيز للرفع برجاء عدم اغلاق الصفحه نهائيا"
+            // })
 
    
 

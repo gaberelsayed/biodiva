@@ -250,6 +250,18 @@ router.post('/handelAttendance/getAttendees', authMiddleware, teacherController.
 router.post('/handelAttendance/convertAttendeesToExcel', authMiddleware, teacherController.convertAttendeesToExcel);
 
 
+
+
+//  ================== Home Work  ==================  //
+
+router.get('/homeWork/:Grade', authMiddleware, teacherController.getVideosToHW);
+
+router.get('/homeWork/:Grade/:videoID', authMiddleware, teacherController.getAllStudentsHW);
+
+router.get('/homeWork/show/:videoID/:studentCode', authMiddleware, teacherController.showHW);
+
+router.get('/homeWork/accept/:videoID/:studentCode', authMiddleware, teacherController.acceptHW);
+
 // ================== Whats App ====================== //
 
 router.get('/whatsApp', authMiddleware, teacherController.whatsApp_get);

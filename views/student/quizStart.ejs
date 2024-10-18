@@ -207,7 +207,7 @@ if (localStorage.getItem("answers")) {
 const quizData = <%- JSON.stringify(quiz) %>;
 const question = <%- JSON.stringify(question) %>;
 const userQuizInfo = <%- JSON.stringify(userQuizInfo) %>;
-
+console.log(quizData['Questions']);
 endTime = new Date(userQuizInfo.endTime).getTime(); // Set endTime from userQuizInfo
 
 // ==================  Timer  ============== //
@@ -231,6 +231,7 @@ endTime = new Date(userQuizInfo.endTime).getTime(); // Set endTime from userQuiz
   }
 
 
+  window.onload = updateTimer(); // Call updateTimer function when the window loads
 
 // ==================  Timer  ====== ///
 
@@ -354,6 +355,7 @@ function finish() {
     answers[qNumber] = Number(selectedOption.value);
   }
   localStorage.setItem("answers", JSON.stringify(answers));
+  console.log(answers);
   const numCorrect = calculateCorrectAnswers();
   const totalQuestions = quizData.questionsCount;
   const grade = (numCorrect / totalQuestions) * 100;
@@ -364,7 +366,6 @@ function finish() {
     answers: answers,
   };
 
-  console.log(requestData);
   if (grade >= 50) {
     document.getElementById("successModalGrade").innerText = numCorrect;
     document.getElementById("successModalTotalQuestions").innerText = totalQuestions;
@@ -385,29 +386,40 @@ function calculateCorrectAnswers() {
   let numCorrect = 0;
   let c = 1;
   quizData["Questions"].forEach((question) => {
-    answers[c] == +(question.correctAnswer) ? numCorrect++ : console.log();
+   
+    answers[c] == +(question.ranswer) ? numCorrect++ : console.log();
     c++;
   });
+
+  console.log(numCorrect);  
   return numCorrect;
 }
 
 async function updateQuestion(question) {
   let questionSec = document.querySelector("#questionSec");
-  questionSec.innerHTML = `
+      // document.getElementById("questionSec").style.display = "inline";
+    if(question.questionPhoto!=""){
+          
+      questionSec.innerHTML = `
+      <div class="box-img mb-3">
+    <img src="${question.questionPhoto}" >
+    </div>
     <h1 class="questionSec" id="titleOfQuestion">${question.title}</h1>
-      <input type="radio" name="answer" class="RD form-check-input" value="1" id="answer1" ${
-        answers[qNumber] === 1 ? "checked" : ""
-      }><label for="answer1" class="text">${await question.answer1}</label><br/>
-      <input type="radio" name="answer" class="RD form-check-input" value="2" id="answer2" ${
-        answers[qNumber] === 2 ? "checked" : ""
-      }><label for="answer2" class="text">${await question.answer2}</label><br/>
-      <input type="radio" name="answer" class="RD form-check-input" value="3" id="answer3" ${
-        answers[qNumber] === 3 ? "checked" : ""
-      }><label for="answer3" class="text">${await question.answer3}</label><br/>
-      <input type="radio" name="answer" class="RD form-check-input" value="4" id="answer4" ${
-        answers[qNumber] === 4 ? "checked" : ""
-      }><label for="answer4" class="text">${await question.answer4}</label><br/>
-    `;
+    <input type="radio" name="answer" class="RD form-check-input" value="1" id="answer1" ${answers[qNumber] === 1 ? "checked" : ""}><label for="answer1" class="text">${await question.answer1}</label><br/>
+    <input type="radio" name="answer" class="RD form-check-input" value="2" id="answer2" ${answers[qNumber] === 2 ? "checked" : ""}><label for="answer2" class="text">${await question.answer2}</label><br/>
+    <input type="radio" name="answer" class="RD form-check-input" value="3" id="answer3" ${answers[qNumber] === 3 ? "checked" : ""}><label for="answer3" class="text">${await question.answer3}</label><br/>
+    <input type="radio" name="answer" class="RD form-check-input" value="4" id="answer4" ${answers[qNumber] === 4 ? "checked" : ""}><label for="answer4" class="text">${await question.answer4}</label><br/>
+      `;
+    }else{
+      questionSec.innerHTML = `
+
+    <h1 class="questionSec" id="titleOfQuestion">${question.title}</h1>
+    <input type="radio" name="answer" class="RD form-check-input" value="1" id="answer1" ${answers[qNumber] === 1 ? "checked" : ""}><label for="answer1" class="text">${await question.answer1}</label><br/>
+    <input type="radio" name="answer" class="RD form-check-input" value="2" id="answer2" ${answers[qNumber] === 2 ? "checked" : ""}><label for="answer2" class="text">${await question.answer2}</label><br/>
+    <input type="radio" name="answer" class="RD form-check-input" value="3" id="answer3" ${answers[qNumber] === 3 ? "checked" : ""}><label for="answer3" class="text">${await question.answer3}</label><br/>
+    <input type="radio" name="answer" class="RD form-check-input" value="4" id="answer4" ${answers[qNumber] === 4 ? "checked" : ""}><label for="answer4" class="text">${await question.answer4}</label><br/>
+      `;
+    }
 }
 
 
