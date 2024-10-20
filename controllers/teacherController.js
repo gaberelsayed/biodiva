@@ -4,7 +4,7 @@ const Chapter = require('../models/Chapter');
 const Code = require('../models/Code');
 const Card = require('../models/Card');
 const PDF = require('../models/PDFs');
-const Attendance = require('../models/Attendance'); 
+const Attendance = require('../models/Attendance');
 const mongoose = require('mongoose');
 
 const waapi = require('@api/waapi');
@@ -107,13 +107,11 @@ const getAllChapters = async (req, res) => {
           chapterLectures: cahpter.chapterLectures,
         });
       });
-      res
-        .status(200)
-        .render('teacher/addVideo', {
-          title: 'AddVideo',
-          path: req.path,
-          chaptersData: data,
-        });
+      res.status(200).render('teacher/addVideo', {
+        title: 'AddVideo',
+        path: req.path,
+        chaptersData: data,
+      });
     });
   } catch (error) {
     console.log(error);
@@ -272,17 +270,15 @@ const getAllChaptersInHandle = async (req, res) => {
           chapterLectures: cahpter.chapterLectures,
         });
       });
-      res
-        .status(200)
-        .render('teacher/handleVideos', {
-          title: 'AddVideo',
-          path: req.path,
-          chaptersData: data,
-          chapterData: null,
-          videoData: null,
-          nextPage: null,
-          previousPage: null,
-        });
+      res.status(200).render('teacher/handleVideos', {
+        title: 'AddVideo',
+        path: req.path,
+        chaptersData: data,
+        chapterData: null,
+        videoData: null,
+        nextPage: null,
+        previousPage: null,
+      });
     });
   } catch (error) {
     console.log(error);
@@ -305,17 +301,15 @@ const getChapterDataToEdit = async (req, res) => {
         chapterSolvings: result.chapterSolvings,
       };
 
-      res
-        .status(200)
-        .render('teacher/handleVideos', {
-          title: 'AddVideo',
-          path: req.path,
-          chapterData: data,
-          chaptersData: null,
-          videoData: null,
-          nextPage: null,
-          previousPage: null,
-        });
+      res.status(200).render('teacher/handleVideos', {
+        title: 'AddVideo',
+        path: req.path,
+        chapterData: data,
+        chaptersData: null,
+        videoData: null,
+        nextPage: null,
+        previousPage: null,
+      });
     });
   } catch (error) {
     console.log(error);
@@ -982,18 +976,16 @@ const searchToGetOneUserAllData = async (req, res) => {
   const { searchBy, searchInput } = req.query;
 
   try {
-     const result = await User.findOne({ [`${searchBy}`]: searchInput })
+    const result = await User.findOne({ [`${searchBy}`]: searchInput });
 
-     const attendance = await Card.findOne({ userId : result._id })
+    const attendance = await Card.findOne({ userId: result._id });
 
-
-      res.render('teacher/myStudent', {
-        title: 'Mystudent',
-        path: req.path,
-        userData: result,
-        attendance: attendance.cardHistory,
-      });
-   
+    res.render('teacher/myStudent', {
+      title: 'Mystudent',
+      path: req.path,
+      userData: result,
+      attendance: attendance.cardHistory,
+    });
   } catch (error) {}
 };
 
@@ -1436,7 +1428,7 @@ const quizSubmit = (req, res) => {
               inProgress: false,
               solvedAt: null,
               solveTime: null,
-              endTime : null,
+              endTime: null,
               isQuizPrepaid: prepaidStatus == 'Pay' ? true : false,
               quizPurchaseStatus: prepaidStatus == 'Pay' ? false : true,
               answers: [],
@@ -1609,7 +1601,6 @@ const searchForUserInQuiz = async (req, res) => {
           quizesInfo: {
             $elemMatch: {
               _id: QuizId,
-        
             },
           },
         },
@@ -1634,8 +1625,7 @@ const searchForUserInQuiz = async (req, res) => {
           createdAt: 1,
         },
       },
-    ])
-    .then((result) => {
+    ]).then((result) => {
       console.log(result.length);
 
       res.render('teacher/handleQuizzes', {
@@ -2352,7 +2342,6 @@ const searchToGetCode = async (req, res) => {
 
 // ================================================== END Handel Codes ================================================ //
 
-
 const PDFPost_get = (req, res) => {
   res.render('teacher/PDFPost', { title: 'PDFPost', path: req.path });
 };
@@ -2378,13 +2367,10 @@ const PDFPost_post = async (req, res) => {
     });
 };
 
-
 // =================================================== Add Card  &&  Attendance =================================================== //
 const addCardGet = async (req, res) => {
-
   res.render('teacher/addCard', { title: 'addCard', path: req.path });
- 
-}
+};
 
 const addCardToStudent = async (req, res) => {
   const { studentCode, assignedCard } = req.body;
@@ -2393,96 +2379,118 @@ const addCardToStudent = async (req, res) => {
   if (!studentCode || !assignedCard) {
     return res
       .status(400)
-      .json({ message: 'studentCode and assignedCard are required' , Username   : null});
+      .json({
+        message: 'studentCode and assignedCard are required',
+        Username: null,
+      });
   }
 
   try {
     const userByCode = await User.findOne(
       { Code: studentCode },
-      { Username: 1, Code: 1 } 
+      { Username: 1, Code: 1 }
     );
     if (!userByCode) {
-      return res.status(400).json({ message: 'هاذا الطالب غير موجود تأكد من الكود' ,Username   : null});
+      return res
+        .status(400)
+        .json({
+          message: 'هاذا الطالب غير موجود تأكد من الكود',
+          Username: null,
+        });
     }
 
     const cardByCode = await Card.findOne({ userCode: userByCode.Code });
     if (cardByCode) {
-      return res.status(400).json({ message: 'هاذا الطالب لديه بطاقه بالفعل' ,Username   : userByCode.Username});
+      return res
+        .status(400)
+        .json({
+          message: 'هاذا الطالب لديه بطاقه بالفعل',
+          Username: userByCode.Username,
+        });
     }
 
-    const card = new Card({ 
+    const card = new Card({
       cardId: assignedCard,
       userId: userByCode._id,
-      userCode : userByCode.Code,
-    })
-    card.save().then((result) => {
-        return res.status(200).json({ message: 'تم اضافه بيانات الكارت للطالب بنجاح'  ,Username   : userByCode.Username}); 
-    }).catch((err) => {
-      console.error(err);
-      return res.status(500).json({ message: 'يبدو ان هناك خطأ ما '  ,Username   : null});
-    })
-
-
+      userCode: userByCode.Code,
+    });
+    card
+      .save()
+      .then((result) => {
+        return res
+          .status(200)
+          .json({
+            message: 'تم اضافه بيانات الكارت للطالب بنجاح',
+            Username: userByCode.Username,
+          });
+      })
+      .catch((err) => {
+        console.error(err);
+        return res
+          .status(500)
+          .json({ message: 'يبدو ان هناك خطأ ما ', Username: null });
+      });
   } catch (error) {
     console.error('Error adding card:', error);
-    return res.status(500).json({ message:'يبدو ان هناك خطأ ما ' ,Username   : null});
+    return res
+      .status(500)
+      .json({ message: 'يبدو ان هناك خطأ ما ', Username: null });
   }
 };
 
-
 const getAttendedUsers = async (req, res) => {
-   const { CardGrade, centerName, GroupTime } = req.body;
-    console.log(CardGrade, centerName, GroupTime);
-    try {
-        // Query the database to find the attendance record for the specified session
-        const attendanceRecord = await Attendance.findOne({
-            Grade: CardGrade,
-            CenterName: centerName,
-            GroupTime: GroupTime,
-            Date: new Date().toISOString().split('T')[0], // Check attendance for today
-        }).populate('Students', { Username: 1, Code: 1, phone: 1, parentPhone: 1 });
+  const { CardGrade, centerName, GroupTime } = req.body;
+  console.log(CardGrade, centerName, GroupTime);
+  try {
+    // Query the database to find the attendance record for the specified session
+    const attendanceRecord = await Attendance.findOne({
+      Grade: CardGrade,
+      CenterName: centerName,
+      GroupTime: GroupTime,
+      Date: new Date().toISOString().split('T')[0], // Check attendance for today
+    }).populate('Students', { Username: 1, Code: 1, phone: 1, parentPhone: 1 });
 
-        if (!attendanceRecord) {
-            return res.status(404).json({ message: 'No attendance record found for this session.' });
-        }
-
-        // Return the list of attended students
-        res.status(200).json({ students: attendanceRecord.Students });
-    } catch (error) {
-        console.error('Error fetching attended students:', error);
-        res.status(500).json({ message: 'Server error. Please try again.' });
+    if (!attendanceRecord) {
+      return res
+        .status(404)
+        .json({ message: 'No attendance record found for this session.' });
     }
+
+    // Return the list of attended students
+    res.status(200).json({ students: attendanceRecord.Students });
+  } catch (error) {
+    console.error('Error fetching attended students:', error);
+    res.status(500).json({ message: 'Server error. Please try again.' });
+  }
 };
 
 const attendUser = async (req, res) => {
   const { CardGrade, centerName, GroupTime, CardType, attendeeID } = req.body;
-
 
   if (!CardGrade || !centerName || !GroupTime || !CardType || !attendeeID) {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
   let studentDataByCard;
-  if (CardType=='Card') {
-       studentDataByCard = await Card.findOne({ cardId: attendeeID }).populate(
-         'userId',
-         {
-           Username: 1,
-           Code: 1,
-           parentPhone: 1,
-           phone: 1,
-         }
-       );
-
-  }else if (CardType=='Code') {
-        studentDataByCard = await Card.findOne({
-          userCode: attendeeID,
-        }).populate('userId', {
-          Username: 1,
-          Code: 1,
-          parentPhone: 1,
-          phone: 1,
-        });
+  if (CardType == 'Card') {
+    studentDataByCard = await Card.findOne({ cardId: attendeeID }).populate(
+      'userId',
+      {
+        Username: 1,
+        Code: 1,
+        parentPhone: 1,
+        phone: 1,
+      }
+    );
+  } else if (CardType == 'Code') {
+    studentDataByCard = await Card.findOne({
+      userCode: attendeeID,
+    }).populate('userId', {
+      Username: 1,
+      Code: 1,
+      parentPhone: 1,
+      phone: 1,
+    });
   }
 
   if (!studentDataByCard) {
@@ -2502,34 +2510,30 @@ const attendUser = async (req, res) => {
   });
 
   if (existingHistory) {
-    return res
-      .status(400)
-      .json({ message: 'تم اضافه هذا الطالب من قبل' });
+    return res.status(400).json({ message: 'تم اضافه هذا الطالب من قبل' });
   }
 
   // Update the card history if not already recorded
 
-  if(CardType=='Card'){
-
-  await Card.findOneAndUpdate(
-    { cardId: attendeeID },
-    {
-      $push: {
-        cardHistory: {
-          centerName: centerName,
-          GroupTime: GroupTime,
-          isAttend: true,
-          dateOfAttend: new Date(),
+  if (CardType == 'Card') {
+    await Card.findOneAndUpdate(
+      { cardId: attendeeID },
+      {
+        $push: {
+          cardHistory: {
+            centerName: centerName,
+            GroupTime: GroupTime,
+            isAttend: true,
+            dateOfAttend: new Date(),
+          },
         },
-      },
-    }
-  );
-
-  }else if (CardType=='Code'){
+      }
+    );
+  } else if (CardType == 'Code') {
     await Card.findOneAndUpdate(
       { userCode: attendeeID },
-      { 
-        $push: { 
+      {
+        $push: {
           cardHistory: {
             centerName: centerName,
             GroupTime: GroupTime,
@@ -2628,17 +2632,15 @@ const convertAttendanceToExcel = async (req, res) => {
       GroupTime: GroupTime,
       Date: new Date().toISOString().split('T')[0], // Check attendance for today
     }).populate('Students', { Username: 1, Code: 1, phone: 1, parentPhone: 1 });
-    let nphone = 0
+    let nphone = 0;
     req.io.emit('sendingToParents', {
       nPhone: nphone,
     });
 
-    attendanceRecord['Students'].forEach(async(student) => {
-   
-      let message = 
-      `
+    attendanceRecord['Students'].forEach(async (student) => {
+      let message = `
         تم حضور الطالب : ${student.Username} الان في سنتر ${centerName} في مجموعه الساعه ${GroupTime}
-      `
+      `;
       await waapi
         .postInstancesIdClientActionSendMessage(
           {
@@ -2652,29 +2654,38 @@ const convertAttendanceToExcel = async (req, res) => {
             nPhone: ++nphone,
           });
         });
-
     });
 
-
-
-  
-
-
-
     if (!attendanceRecord) {
-      return res.status(404).json({ message: 'No attendance record found for this session.' });
+      return res
+        .status(404)
+        .json({ message: 'No attendance record found for this session.' });
     }
 
     const workbook = new Excel.Workbook();
     const worksheet = workbook.addWorksheet('Attendance Data');
 
-    const headerH1Row = worksheet.addRow(['Grade', 'Center Name', 'Group Time', 'Date']);
-  
-    const headerH2Row = worksheet.addRow([CardGrade, centerName, GroupTime, new Date().toISOString().split('T')[0]]);
+    const headerH1Row = worksheet.addRow([
+      'Grade',
+      'Center Name',
+      'Group Time',
+      'Date',
+    ]);
 
+    const headerH2Row = worksheet.addRow([
+      CardGrade,
+      centerName,
+      GroupTime,
+      new Date().toISOString().split('T')[0],
+    ]);
 
-
-    const headerRow = worksheet.addRow(['#', 'Student Name', 'Student Code', 'Student Phone', 'Parent Phone']);
+    const headerRow = worksheet.addRow([
+      '#',
+      'Student Name',
+      'Student Code',
+      'Student Phone',
+      'Parent Phone',
+    ]);
     headerRow.font = { bold: true };
     headerRow.fill = {
       type: 'pattern',
@@ -2686,7 +2697,13 @@ const convertAttendanceToExcel = async (req, res) => {
     let c = 0;
     attendanceRecord.Students.forEach((student) => {
       c++;
-      const row = worksheet.addRow([c, student.Username, student.Code, student.phone, student.parentPhone]);
+      const row = worksheet.addRow([
+        c,
+        student.Username,
+        student.Code,
+        student.phone,
+        student.parentPhone,
+      ]);
       // Apply alternating row colors
       if (c % 2 === 0) {
         row.fill = {
@@ -2715,20 +2732,18 @@ const convertAttendanceToExcel = async (req, res) => {
     console.error('Error generating Excel file:', error);
     res.status(500).send('Error generating Excel file');
   }
-}
-
+};
 
 // =================================================== END Add Card  &&  Attendance =================================================== //
-
-
 
 // =================================================== Handel Attendance =================================================== //
 
 const handelAttendanceGet = async (req, res) => {
- 
-  res.render('teacher/handelAttendance', { title: 'handelAttendance', path: req.path });
-}
-
+  res.render('teacher/handelAttendance', {
+    title: 'handelAttendance',
+    path: req.path,
+  });
+};
 
 const getDates = async (req, res) => {
   const { CardGrade, centerName, GroupTime } = req.body;
@@ -2739,7 +2754,9 @@ const getDates = async (req, res) => {
       GroupTime: GroupTime,
     }).distinct('Date');
     if (!Dates) {
-      return res.status(404).json({ message: 'No attendance record found for this session.' });
+      return res
+        .status(404)
+        .json({ message: 'No attendance record found for this session.' });
     }
 
     console.log(Dates);
@@ -2748,7 +2765,7 @@ const getDates = async (req, res) => {
     console.error('Error fetching attendance dates:', error);
     res.status(500).json({ message: 'Server error. Please try again.' });
   }
-}
+};
 
 const getAttendees = async (req, res) => {
   const { CardGrade, centerName, GroupTime, date } = req.body;
@@ -2762,7 +2779,9 @@ const getAttendees = async (req, res) => {
     }).populate('Students', { Username: 1, Code: 1, phone: 1, parentPhone: 1 });
 
     if (!attendanceRecord) {
-      return res.status(404).json({ message: 'No attendance record found for this session.' });
+      return res
+        .status(404)
+        .json({ message: 'No attendance record found for this session.' });
     }
 
     res.status(200).json({ students: attendanceRecord.Students });
@@ -2770,8 +2789,7 @@ const getAttendees = async (req, res) => {
     console.error('Error fetching attendees:', error);
     res.status(500).json({ message: 'Server error. Please try again.' });
   }
-}
-
+};
 
 const convertAttendeesToExcel = async (req, res) => {
   try {
@@ -2863,19 +2881,13 @@ const convertAttendeesToExcel = async (req, res) => {
   }
 };
 
-
-
-
 // =================================================== END Handel Attendance =================================================== //
-
-
 
 // =================================================== Whats App =================================================== //
 
-const whatsApp_get = (req,res)=>{
+const whatsApp_get = (req, res) => {
   res.render('teacher/whatsApp', { title: 'whatsApp', path: req.path });
-}
-
+};
 
 const delay2 = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -2895,8 +2907,6 @@ const sendGradeMessages = async (req, res) => {
 
   try {
     for (const student of dataToSend) {
-     
-
       let message = `
         عزيزي ولي امر الطالب : ${student[nameCloumnName]}.
         
@@ -2946,7 +2956,6 @@ const sendGradeMessages = async (req, res) => {
   }
 };
 
-
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const sendMessages = async (req, res) => {
@@ -2995,10 +3004,7 @@ const sendMessages = async (req, res) => {
   }
 };
 
-
-
 // =================================================== END Whats App =================================================== //
-
 
 // =================================================== Home Work =================================================== //
 
@@ -3025,55 +3031,50 @@ const getVideosToHW = async (req, res) => {
 
 const getAllStudentsHW = async (req, res) => {
   const { videoID } = req.params;
-console.log(videoID);
+  console.log(videoID);
   try {
-        const students = await User.aggregate([
-          {
-            $match: {
-              videosInfo: {
-                $elemMatch: {
-                  _id: videoID,
-                  isHWIsUploaded: true,
-                },
+    const students = await User.aggregate([
+      {
+        $match: {
+          videosInfo: {
+            $elemMatch: {
+              _id: videoID,
+              isHWIsUploaded: true,
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          Username: 1,
+          Code: 1,
+          videosInfo: {
+            $filter: {
+              input: '$videosInfo',
+              as: 'video',
+              cond: {
+                $and: [
+                  { $eq: ['$$video._id', videoID] },
+                  { $eq: ['$$video.isHWIsUploaded', true] },
+                ],
               },
             },
           },
-          {
-            $project: {
-              Username: 1,
-              Code: 1,
-              videosInfo: {
-                $filter: {
-                  input: '$videosInfo',
-                  as: 'video',
-                  cond: {
-                    $and: [
-                      { $eq: ['$$video._id', videoID] },
-                      { $eq: ['$$video.isHWIsUploaded', true] },
-                    ],
-                  },
-                },
-              },
-              
-            },
-          },
-          {
-            $sort: {
-              createdAt: 1,
-            },
-          },
-        ]);
+        },
+      },
+      {
+        $sort: {
+          createdAt: 1,
+        },
+      },
+    ]);
 
-        console.log(students);
+    console.log(students);
     if (students.length === 0) {
-      return res
-        .status(404)
-        .json({
-          message: 'No students found who uploaded homework for this video.',
-        });
+      return res.status(404).json({
+        message: 'No students found who uploaded homework for this video.',
+      });
     }
-
-
 
     res.status(200).json({ students });
   } catch (error) {
@@ -3124,16 +3125,10 @@ const acceptHW = async (req, res) => {
     // Return the video data
 
     res.status(200).json({ message: 'Homework accepted successfully' });
-
   } catch (error) {
-
     res.status(500).json({ message: 'Server error', error: error.message });
-
   }
-}
-
-
-
+};
 
 // =================================================== Log Out =================================================== //
 
@@ -3211,13 +3206,10 @@ module.exports = {
   removeAttendance,
   convertAttendanceToExcel,
 
-
-  
   handelAttendanceGet,
   getDates,
   getAttendees,
   convertAttendeesToExcel,
-
 
   // HomeWork Page
 
@@ -3225,8 +3217,6 @@ module.exports = {
   getAllStudentsHW,
   showHW,
   acceptHW,
-
-
 
   // WhatsApp
 

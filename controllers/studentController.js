@@ -971,7 +971,7 @@ const quizFinish = async (req, res) => {
           'quizesInfo.$.inProgress': false,
           'quizesInfo.$.isEnterd': true,
           'quizesInfo.$.solvedAt': Date.now(),
-          'quizesInfo.$.endTime': 0,
+          'quizesInfo.$.endTime': null,
         },
         $inc: { totalScore: +score, totalQuestions: +quiz.questionsCount },
       }
