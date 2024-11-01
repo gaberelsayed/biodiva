@@ -449,6 +449,7 @@ async function updateWatchInUser(req, res, videoId, chapterID) {
     );
   }
 }
+
 async function getVideoWatch(req, res) {
   const videoType = req.params.videoType;
   const chapterID = req.params.chapterID;
@@ -655,7 +656,10 @@ const ranking_get = async (req, res) => {
   }
 };
 
-// ================== END Ranking  ====================== //
+
+// ================== END Ranking ====================== //
+
+
 
 // ================== Exams  ====================== //
 
