@@ -279,7 +279,7 @@ async function uploFilesHomeWork() {
       () => {
         getDownloadURL(UploadTask.snapshot.ref).then((downloadURL) => {
           HomeWorkPhotos.push(downloadURL);
-          if (HomeWorkPhotos.length == files.length) {
+          if (HomeWorkPhotos.length == files.length&& HomeWorkPhotos.length!=0) {
             document.getElementById("ShowUploadSec").style.display = "none";
 
             fetch("", {
@@ -293,9 +293,12 @@ async function uploFilesHomeWork() {
             }).then(()=>{
               document.getElementById("HomeWorkSubmitbtn").click()
             }).catch((error)=>{
-              alert("error")
+              alert("يجب رفع الملفات مره اخري")
             })
 
+          }else{
+            alert("يجب رفع الملفات مره اخري")
+            return;
           }
         });
        

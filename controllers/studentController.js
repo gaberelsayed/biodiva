@@ -556,7 +556,10 @@ const uploadHW = async (req, res) => {
     const VideoId = req.params.VideoId;
     const userId = req.userData._id;
     const HomeWorkPhotos = req.body.HomeWorkPhotos;
-
+    
+    if (!HomeWorkPhotos) {
+      return res.status(400).send('Please upload a photo');
+    }
     // Update the specific video's isHWIsUploaded field
     await User.findOneAndUpdate(
       { _id: userId, 'videosInfo._id': VideoId },
