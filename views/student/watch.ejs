@@ -119,19 +119,10 @@
               <div class="col-lg-9 mx-auto">
                 <div class="video">
                   <div class="container show-controls" dir="ltr" id="VideoEm">
-                    <div class="video-container">
+                   <div class="video-container">
+                    <iframe src="<%= video.videoURL %>" width="640" height="360" frameborder="0" allowfullscreen></iframe>
+                  </div>
 
-
-                <% if (video.videoURL.length>100) {%>      
-                
-                  <%-    video.videoURL    %>          
-                    <% }else{%>
-                     <%-video.videoURL%>
-               <% } %>
-                 
-
-
-                    </div>
                 </div>
                 
                   <i class="watermark " id="watermark"></i>
