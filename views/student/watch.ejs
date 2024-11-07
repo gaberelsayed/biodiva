@@ -312,9 +312,10 @@ document.getElementById("UploadBtn").addEventListener('click',uploFilesHomeWork)
    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
    <script>
+    const videoURL = <%- JSON.stringify(video.videoURL) %>;
     const hls = new Hls();
-hls.loadSource('<%= video.videoURL %>');
-hls.attachMedia(video);
+hls.loadSource(videoURL);
+hls.attachMedia(videoURL);
 
 hls.on(Hls.Events.ERROR, function(event, data) {
   if (data.type === Hls.ErrorTypes.NETWORK_ERROR && data.details === Hls.ErrorDetails.KEY_LOAD_ERROR) {
