@@ -491,7 +491,7 @@ async function getVideoWatch(req, res) {
   // Define video path and other parameters for Bunny.net token
   const videoId = video.videoURL; // Example video ID as token ID
   const tokenSecurityKey = '3c13c271-d42b-4ca6-8967-45c515bd0f67'; // Replace with actual Bunny.net secret key
-  const expirationInSeconds = 10;
+  const expirationInSeconds = 15;
   const expirationTimestamp =
     Math.floor(Date.now() / 1000) + expirationInSeconds;
 

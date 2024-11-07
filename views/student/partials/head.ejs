@@ -32,4 +32,37 @@
     <title>Student | Dashboard</title>
   </head>
 
+  <script>
+    document.addEventListener('contextmenu', function (e) {
+  e.preventDefault();
+});
+
+// setInterval(function () {
+//   if (window.innerWidth < 800) {
+//     alert("Developer tools detected! Please close them.");
+//     window.location.reload();
+//   }
+// }, 1000);
+
+
+
+
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'F12' || 
+      (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 'i' || e.key === 'I'))) {
+    e.preventDefault();
+  }
+});
+
+
+document.querySelectorAll('*').forEach(element => {
+  element.style.userSelect = 'none'; // Disable text selection
+  element.addEventListener('mousedown', function (e) {
+    e.preventDefault(); // Prevent mouse interaction on certain elements
+  });
+});
+
+
+  </script>
+
 
