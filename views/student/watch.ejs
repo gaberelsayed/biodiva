@@ -310,6 +310,19 @@ document.getElementById("UploadBtn").addEventListener('click',uploFilesHomeWork)
       module = {};
     </script>
    
+   <script>
+    const hls = new Hls();
+hls.loadSource('<%= video.videoURL %>');
+hls.attachMedia(video);
+
+hls.on(Hls.Events.ERROR, function(event, data) {
+  if (data.type === Hls.ErrorTypes.NETWORK_ERROR && data.details === Hls.ErrorDetails.KEY_LOAD_ERROR) {
+    console.warn('Key load error, attempting reload...');
+    hls.startLoad();  // Retry loading
+  }
+});
+
+   </script>
 
 
 
