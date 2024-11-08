@@ -920,8 +920,8 @@ const quizFinish = async (req, res) => {
     }
 
     // If the score is less than 60%, don't update quiz info, allow retry
-    if (scorePercentage < 60) {
-      console.log('Score is less than 60%');  
+    if (scorePercentage < 50) {
+       
           User.findOneAndUpdate(
             { _id: req.userData._id, 'quizesInfo._id': quizObjId },
             {
