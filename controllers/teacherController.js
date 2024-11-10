@@ -3130,8 +3130,67 @@ const acceptHW = async (req, res) => {
   }
 };
 
-// =================================================== Log Out =================================================== //
 
+
+const myStudentIds_get = async (req, res) => {
+  res.render('teacher/myStudentIds', { title: 'myStudentIds', path: req.path });
+}
+
+
+const getCardsData = async (req, res) => {
+  try {
+    // Extract the start and end date from query parameters
+    const { start, end } = req.query;
+
+
+       if (!start || !end) {
+         const cards = await Card.find().populate('userId', {
+           Username: 1,
+           Code: 1,
+         });
+         // Filter out items with null userId
+         const filteredCards = cards.filter((item) => item.userId !== null);
+         console.log('Fetched cards:', cards);
+         return res.status(200).json({ cards: filteredCards });
+       }
+
+    console.log('Received query parameters:', start, end);
+
+    // Convert query parameters to Date objects
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    endDate.setHours(23, 59, 59, 999); // Adjust the end date to include the entire day
+
+    // Log the converted dates for debugging
+    console.log('Converted start date:', startDate);
+    console.log('Converted end date:', endDate);
+
+    // Query the database for cards within the date range
+
+ 
+    const cards = await Card.find({
+      createdAt: {
+        $gte: startDate,
+        $lte: endDate,
+      },
+    }).populate('userId', { Username: 1, Code: 1 });
+
+      const filteredCards = cards.filter((item) => item.userId !== null);
+
+
+    // Respond with the data or an empty array if none is found
+    res.status(200).json({ cards: filteredCards });
+  } catch (error) {
+    // Log the error and respond with an error message
+    console.error('Error fetching cards:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+   
+
+
+// =================================================== Log Out =================================================== //
 const logOut = async (req, res) => {
   // Clearing the token cookie
   res.clearCookie('token');
@@ -3223,6 +3282,9 @@ module.exports = {
   whatsApp_get,
   sendGradeMessages,
   sendMessages,
+
+  myStudentIds_get,
+  getCardsData,
 
   logOut,
 };

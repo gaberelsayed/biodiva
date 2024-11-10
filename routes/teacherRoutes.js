@@ -180,6 +180,12 @@ router.get("/searchToGetCode",authMiddleware, teacherController.searchToGetCode)
 
 // ================ END Handel Codes  ===================//
 
+router.get('/myStudentIds', authMiddleware, teacherController.myStudentIds_get);
+router.get(
+  '/myStudentIds/getCardsData',
+  authMiddleware,
+  teacherController.getCardsData
+);
 
 
 
