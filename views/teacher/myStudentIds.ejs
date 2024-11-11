@@ -105,7 +105,7 @@
             
                                 <div class="mx-auto">
                                 
-                                        <button id="ConvertToExcel" class="paginationBtns">Convert To Excel And Send Copy To Parent</button> 
+                                        <button id="ConvertToExcel" class="paginationBtns">Convert To Excel </button> 
                               
                                 </div>
 
@@ -180,7 +180,20 @@ fetchAllDates.checked = false;
 
   ConvertToExcel.addEventListener('click', async () => {
     try {
-        const response = await fetch(`/teacher/myStudent/convertToExcel/${attendeeID.value}`);
+
+
+         let urlFetch = `/teacher/myStudentIds/convertToExcel`;
+        
+        // If "Fetch All Dates" is not checked, add date range to the URL
+        if (!fetchAllDates.checked) {
+            const start = startDate.value;
+            const end = endDate.value;
+            
+            if (start && end) {
+                urlFetch += `?start=${start}&end=${end}`;
+            }
+        }
+        const response = await fetch(urlFetch);
         
         // Ensure the response is OK and is of type blob
         if (!response.ok || response.headers.get('Content-Type') !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {

@@ -188,6 +188,12 @@ router.get(
 );
 
 
+router.get(
+  '/myStudentIds/convertToExcel',
+  authMiddleware,
+  teacherController.convertToExcelIds
+);
+
 
 
 // ================== Handle Videos ====================== //

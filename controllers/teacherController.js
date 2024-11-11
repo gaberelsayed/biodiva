@@ -3189,7 +3189,93 @@ const getCardsData = async (req, res) => {
 
    
 
+const convertToExcelIds = async (req, res) => {
+  try {
+    // Extract the start and end date from query parameters
+    const { start, end } = req.query;
 
+    // Convert query parameters to Date objects
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    // Query the database for cards within the date range
+    const cards = await Card.find({
+      createdAt: {
+        $gte: startDate,
+        $lte: endDate,
+      },
+    }).populate('userId', { Username: 1, Code: 1 });
+
+    // Create a new Excel workbook
+    const workbook = new Excel.Workbook();
+    const worksheet = workbook.addWorksheet('Card Data');
+
+    // Add headers to the worksheet
+
+    const headerRow = worksheet.addRow([
+      'صاحب الكارت',
+      'اسم الطالب',
+      'كود الطالب',
+      'تاريخ الانشاء',
+      'اخر استخدام',
+    ]);
+    headerRow.font = { bold: true };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFFF00' },
+    };
+
+    // Add card data to the worksheet with alternating row colors
+
+    let c = 0;
+    
+    cards.forEach((card) => {
+      c++;
+      const row = worksheet.addRow([
+        card.cardId,
+        card.userId.Username,
+        card.userId.Code,
+        card.createdAt.toLocaleDateString(),
+        card.updatedAt.toLocaleDateString(),
+      ]);
+      // Apply alternating row colors
+      if (c % 2 === 0) {
+        row.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'DDDDDD' },
+        };
+      }
+    }
+      
+      );
+
+    const excelBuffer = await workbook.xlsx.writeBuffer();
+
+    // Set response headers for file download
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename=cards_data.xlsx'
+    );
+
+    // Send Excel file as response
+    res.send(excelBuffer);
+
+
+
+
+  } catch (error) {
+    // Log the error and respond with an error message
+    console.error('Error generating Excel file:', error);
+    res.status(500).send('Error generating Excel file');
+  }
+}
 // =================================================== Log Out =================================================== //
 const logOut = async (req, res) => {
   // Clearing the token cookie
@@ -3285,6 +3371,7 @@ module.exports = {
 
   myStudentIds_get,
   getCardsData,
+  convertToExcelIds,
 
   logOut,
 };
