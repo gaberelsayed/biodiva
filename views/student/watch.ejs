@@ -120,7 +120,7 @@
                 <div class="video">
                   <div class="container show-controls" dir="ltr" id="VideoEm">
                    <div class="video-container">
-                    <% if (video.videoURL.startsWith('<iframe')) { %>
+                    <% if (video.videoURL.startsWith('<iframe')||video.videoURL.startsWith('<div') ) { %>
                       <%- video.videoURL %>
                     <% }else { %>
                     <iframe src="<%= video.videoURL %>" width="640" height="360" frameborder="0" allowfullscreen></iframe>

@@ -503,8 +503,11 @@ async function getVideoWatch(req, res) {
 
   // Construct the tokenized URL
   let tokenizedURL = `https://iframe.mediadelivery.net/embed/337128/${videoId}?token=${token}&expires=${expirationTimestamp}&autoplay=true&loop=false&muted=false&preload=true&responsive=true`;
-  if (video.videoURL.startsWith('<iframe')) {
-  tokenizedURL = video.videoURL;
+  if (
+    video.videoURL.startsWith('<iframe') ||
+    video.videoURL.startsWith('<div')
+  ) {
+    tokenizedURL = video.videoURL;
   }
   res.render('student/watch', {
     title: 'Watch',

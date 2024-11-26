@@ -1673,11 +1673,14 @@ const convertToExcelQuiz = async (req, res) => {
             },
           },
         },
+      
       },
       {
+        
         $sort: {
-          createdAt: 1,
+          'quizesInfo.Score': -1,
         },
+      
       },
     ]);
 
