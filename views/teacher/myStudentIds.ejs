@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<%- include("./partials/head.ejs") %>
+<style>
+    .separator-row {
+        padding: 10px;
+        border-bottom: 3px solid black;
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    table {
+        width: 100%; /* Ensures the table uses the full width */
+        border-collapse: collapse; /* Prevents double borders */
+    }
+
+    th, td {
+        padding: 10px; /* Consistent padding */
+        text-align: left; /* Align text to the left for readability */
+    }
+
+    
+
+</style>
+
+    <body>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-2">
+                    <%- include("./partials/nav.ejs") %>
+                </div>
+                <!--------------------END ASIDE  ------------------>
+                <!-- Modal -->
+
+
+
+                <!--  END Modal -->
+                <div class="col-lg-10 ">
+                    <main>
+                        <div class="row">
+                            <div class="col-md-6">
+
+                            </div>
+
+                            <div class=" col-md-6 ">
+                                <div class="left" style="margin-top: 0.2rem;">
+                                    <%- include("./partials/top.ejs") %> 
+
+                                </div>
+                            </div>
+                        </div>
+                        <table id="convetToexcel" style="display: none;">
+
+                        </table>
+                        <div class="row">
+                      
+                           <div class="col-md-12  col-sm-12">
+                                <h1>Attendance Data</h1>
+                                <div class="row" dir="ltr">
+                                    <div class="col-md-3">
+                                        
+                                        <label for="startDate">Start Date:</label>
+                                        <input type="date" id="startDate" class="form-control">
+                                        
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="endDate" >End Date:</label>
+                                        <input type="date" id="endDate" class="form-control">
+
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-check mt-3">
+                                            <input type="checkbox" class="form-check-input" id="fetchAllDates">
+                                            <label class="form-check-label" for="fetchAllDates">Fetch All Dates</label>
+                                        </div>
+
+                                    </div>
+                                </div>
+                               
+                             
+                             
+                                <button type="button" id="GetStudentData" class="btn btn-outline-warning btn-md me-3 mt-5">Get Data</button>
+
+                                <div class="student-table ">
+                                    
+                                    <table id="myTable">
+                                        <thead>
+                                            <th style="padding: 10px;">#</th>
+                                            <th style="padding-left: 20px;"> صاحب الكارت</th>
+                                            <th style="padding-left: 20px;"> كود الطالب </th>
+                                            <th style="padding-left: 20px;"> رقم الكارت </th>
+                                            <th style="padding-left: 20px;"> تاريخ الانشاء</th>
+                                     
+                                            <th style="padding-left: 20px;"> اخر استخدام </th>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+
+                            <div class="pagination justify-content-between mb-5">
+            
+                                <div class="mx-auto">
+                                
+                                        <button id="ConvertToExcel" class="paginationBtns">Convert To Excel </button> 
+                              
+                                </div>
+
+                            </div>
+                        </div>   
+                    </main>
+                </div>
+
+                <!-------------------- END OF MAIN --------------------->
+
+            </div>
+        </div>
+
+
+
+        <script src="/assest/bootstrap.bundle.min.js"></script>
+        <script src="/assest/bootstrap.min.js"></script>
+
+ <script>
+const GetStudentData = document.getElementById('GetStudentData');
+const startDate = document.getElementById('startDate');
+const endDate = document.getElementById('endDate');
+const fetchAllDates = document.getElementById('fetchAllDates');
+
+GetStudentData.addEventListener('click', async () => {
+    try {
+        let url = `/teacher/myStudentIds/getCardsData`;
+        
+        // If "Fetch All Dates" is not checked, add date range to the URL
+        if (!fetchAllDates.checked) {
+            const start = startDate.value;
+            const end = endDate.value;
+            
+            if (start && end) {
+                url += `?start=${start}&end=${end}`;
+            }
+        }
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        console.log(data);
+
+        const table = document.querySelector('table tbody');
+        table.innerHTML = '';  // Clear table before populating
+
+       data['cards'].forEach((item, index) => {
+    const username = item.userId ? item.userId['Username'] : 'N/A';
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${username}</td>
+        <td>${item.userCode}</td>
+        <td>${item.cardId}</td>
+        <td>${new Date(item.createdAt).toLocaleString()}</td>
+        <td>${new Date(item.updatedAt).toLocaleString()}</td>
+    `;
+    table.appendChild(row);
+});
+
+fetchAllDates.checked = false;
+    } catch (error) {
+        console.error('Error fetching student data:', error);
+        alert('Failed to fetch student data. Please try again later.');
+    }
+});
+
+
+    const ConvertToExcel = document.getElementById('ConvertToExcel');
+
+  ConvertToExcel.addEventListener('click', async () => {
+    try {
+
+
+         let urlFetch = `/teacher/myStudentIds/convertToExcel`;
+        
+        // If "Fetch All Dates" is not checked, add date range to the URL
+        if (!fetchAllDates.checked) {
+            const start = startDate.value;
+            const end = endDate.value;
+            
+            if (start && end) {
+                urlFetch += `?start=${start}&end=${end}`;
+            }
+        }
+        const response = await fetch(urlFetch);
+        
+        // Ensure the response is OK and is of type blob
+        if (!response.ok || response.headers.get('Content-Type') !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+            throw new Error('Network response was not ok');
+        }
+
+        // Convert the response to a blob
+        const blob = await response.blob();
+
+        // Create a URL for the blob and initiate a download
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'attendance_data.xlsx';
+        document.body.appendChild(a);
+        a.click();
+
+        // Clean up by removing the link and revoking the object URL
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error('Error converting to Excel:', error);
+        alert('Failed to convert to Excel. Please try again later.');
+    }
+});
+
+
+</script>
+
+
+
+    </body>
+
+
+</html>

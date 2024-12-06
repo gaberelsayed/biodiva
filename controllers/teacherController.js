@@ -1617,11 +1617,14 @@ const convertToExcelQuiz = async (req, res) => {
             },
           },
         },
+      
       },
       {
+        
         $sort: {
-          createdAt: 1,
+          'quizesInfo.Score': -1,
         },
+      
       },
     ]);
 
@@ -3074,8 +3077,153 @@ const acceptHW = async (req, res) => {
   }
 };
 
-// =================================================== Log Out =================================================== //
 
+
+const myStudentIds_get = async (req, res) => {
+  res.render('teacher/myStudentIds', { title: 'myStudentIds', path: req.path });
+}
+
+
+const getCardsData = async (req, res) => {
+  try {
+    // Extract the start and end date from query parameters
+    const { start, end } = req.query;
+
+
+       if (!start || !end) {
+         const cards = await Card.find().populate('userId', {
+           Username: 1,
+           Code: 1,
+         });
+         // Filter out items with null userId
+         const filteredCards = cards.filter((item) => item.userId !== null);
+         console.log('Fetched cards:', cards);
+         return res.status(200).json({ cards: filteredCards });
+       }
+
+    console.log('Received query parameters:', start, end);
+
+    // Convert query parameters to Date objects
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    endDate.setHours(23, 59, 59, 999); // Adjust the end date to include the entire day
+
+    // Log the converted dates for debugging
+    console.log('Converted start date:', startDate);
+    console.log('Converted end date:', endDate);
+
+    // Query the database for cards within the date range
+
+ 
+    const cards = await Card.find({
+      createdAt: {
+        $gte: startDate,
+        $lte: endDate,
+      },
+    }).populate('userId', { Username: 1, Code: 1 });
+
+      const filteredCards = cards.filter((item) => item.userId !== null);
+
+
+    // Respond with the data or an empty array if none is found
+    res.status(200).json({ cards: filteredCards });
+  } catch (error) {
+    // Log the error and respond with an error message
+    console.error('Error fetching cards:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+   
+
+const convertToExcelIds = async (req, res) => {
+  try {
+    // Extract the start and end date from query parameters
+    const { start, end } = req.query;
+
+    // Convert query parameters to Date objects
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    // Query the database for cards within the date range
+    const cards = await Card.find({
+      createdAt: {
+        $gte: startDate,
+        $lte: endDate,
+      },
+    }).populate('userId', { Username: 1, Code: 1 });
+
+    // Create a new Excel workbook
+    const workbook = new Excel.Workbook();
+    const worksheet = workbook.addWorksheet('Card Data');
+
+    // Add headers to the worksheet
+
+    const headerRow = worksheet.addRow([
+      'صاحب الكارت',
+      'اسم الطالب',
+      'كود الطالب',
+      'تاريخ الانشاء',
+      'اخر استخدام',
+    ]);
+    headerRow.font = { bold: true };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFFF00' },
+    };
+
+    // Add card data to the worksheet with alternating row colors
+
+    let c = 0;
+    
+    cards.forEach((card) => {
+      c++;
+      const row = worksheet.addRow([
+        card.cardId,
+        card.userId.Username,
+        card.userId.Code,
+        card.createdAt.toLocaleDateString(),
+        card.updatedAt.toLocaleDateString(),
+      ]);
+      // Apply alternating row colors
+      if (c % 2 === 0) {
+        row.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'DDDDDD' },
+        };
+      }
+    }
+      
+      );
+
+    const excelBuffer = await workbook.xlsx.writeBuffer();
+
+    // Set response headers for file download
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename=cards_data.xlsx'
+    );
+
+    // Send Excel file as response
+    res.send(excelBuffer);
+
+
+
+
+  } catch (error) {
+    // Log the error and respond with an error message
+    console.error('Error generating Excel file:', error);
+    res.status(500).send('Error generating Excel file');
+  }
+}
+// =================================================== Log Out =================================================== //
 const logOut = async (req, res) => {
   // Clearing the token cookie
   res.clearCookie('token');
@@ -3167,6 +3315,10 @@ module.exports = {
   whatsApp_get,
   sendGradeMessages,
   sendMessages,
+
+  myStudentIds_get,
+  getCardsData,
+  convertToExcelIds,
 
   logOut,
 };
