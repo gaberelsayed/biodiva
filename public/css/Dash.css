@@ -1721,7 +1721,7 @@ opacity: 0.6;
 #saveNewUpdates:disabled{
 opacity: 0.6;
 }
-#quizStatus{
+.quizStatus{
   border: none;
   border-radius: 10px;
   background-color: var(--color-white);
@@ -1730,7 +1730,7 @@ opacity: 0.6;
   margin-right: 1rem;
   border: 1px solid #fff;
 }
-#quizStatus:disabled{
+.quizStatus:disabled{
   opacity: 0.6;
 }
 #deleteQuiz .fa-trash{

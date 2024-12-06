@@ -1,7 +1,68 @@
+const { random } = require('lodash');
 const mongoose = require('mongoose')
 const { required } = require('nodemon/lib/config')
 const Schema = mongoose.Schema
 
+
+const quizAttemptSchema = new Schema(
+  {
+    quizId: {
+      type: Schema.Types.ObjectId,
+      ref: 'QuizBank',
+      required: true,
+    },
+    quizName: {
+      type: String,
+      required: true,
+    },
+    isEnterd: {
+      type: Boolean,
+      default: false,
+    },
+    inProgress: {
+      type: Boolean,
+      default: false,
+    },
+    randomQuestions: {
+      type: Array,
+      required: false,
+      default: [],
+    },
+    solvedAt: {
+      type: Date,
+      default: null,
+    },
+    solveTime: {
+      type: Number,
+      default: null,
+    },
+    endTime: {
+      type: Date,
+      default: null,
+    },
+    isQuizPrepaid: {
+      type: Boolean,
+      default: true,
+    },
+    quizPurchaseStatus: {
+      type: Boolean,
+      default: false,
+    },
+    answers: {
+      type: Array,
+      default: [],
+    },
+    questionsCount: {
+      type: Number,
+      required: true,
+    },
+    score: {
+      type: Number,
+      default: 0,
+    },
+  },
+  { _id: false }
+);
 const userSchema = new Schema({
 
     Username: {
@@ -65,10 +126,8 @@ const userSchema = new Schema({
         required: true,
     },
 
-    quizesInfo: {
-        type: Array,
-        required: true,
-    },
+    quizesInfo: [quizAttemptSchema],
+    
     videosInfo: {
         type: Array,
         required: true,

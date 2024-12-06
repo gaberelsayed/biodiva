@@ -31,7 +31,8 @@ const path = require('path');
 
 // CONECT to mongodb
 let io
-const dbURI = 'mongodb+srv://3devWay:1qaz2wsx@cluster0.5orkagp.mongodb.net/biodiva2?retryWrites=true&w=majority&appName=Cluster0'
+const dbURI =
+  'mongodb+srv://3devWay:1qaz2wsx@cluster0.5orkagp.mongodb.net/biodiva2?retryWrites=true&w=majority&appName=Cluster0';
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then((result) => {
         let server = app.listen(8000);
@@ -88,149 +89,149 @@ app.use('/student', studentRoutes)
 const Excel = require('exceljs');
 
 
-app.post("/teacher/uploadVideo", async (req, res) => {
+// app.post("/teacher/uploadVideo", async (req, res) => {
 
-    const workbook = new Excel.Workbook();
-    const worksheet = workbook.addWorksheet('Video Data');
+//     const workbook = new Excel.Workbook();
+//     const worksheet = workbook.addWorksheet('Video Data');
 
-    const headerRow = worksheet.addRow(['#', 'User Name', 'Student Code', 'Student Phone', 'Parent Phone']);
+//     const headerRow = worksheet.addRow(['#', 'User Name', 'Student Code', 'Student Phone', 'Parent Phone']);
  
-    const excelBuffer = await workbook.xlsx.writeBuffer();
+//     const excelBuffer = await workbook.xlsx.writeBuffer();
 
-    // Set response headers for file download
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename=users_data.xlsx');
-
-
-    if (!req.files || !req.files.filetoupload) {
-        return res.status(400).send('No files were uploaded.');
-    }
-
-    const uploadedFile = req.files.filetoupload;
-    const uploadDirectory = path.join(__dirname, 'uploads'); // Directory where uploaded files will be stored
-
-    // Create the directory if it doesn't exist
-    if (!fs.existsSync(uploadDirectory)) {
-        fs.mkdirSync(uploadDirectory);
-    }
-
-    // Save the uploaded file
-    const filePath = path.join(uploadDirectory, uploadedFile.name);
+//     // Set response headers for file download
+//     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+//     res.setHeader('Content-Disposition', 'attachment; filename=users_data.xlsx');
 
 
+//     if (!req.files || !req.files.filetoupload) {
+//         return res.status(400).send('No files were uploaded.');
+//     }
 
-    uploadedFile.mv(filePath, (err) => {
-        if (err) {
-            return res.status(500).send(err);
-        }
+//     const uploadedFile = req.files.filetoupload;
+//     const uploadDirectory = path.join(__dirname, 'uploads'); // Directory where uploaded files will be stored
+
+//     // Create the directory if it doesn't exist
+//     if (!fs.existsSync(uploadDirectory)) {
+//         fs.mkdirSync(uploadDirectory);
+//     }
+
+//     // Save the uploaded file
+//     const filePath = path.join(uploadDirectory, uploadedFile.name);
 
 
 
-        const Vimeo = require('vimeo').Vimeo
+//     uploadedFile.mv(filePath, (err) => {
+//         if (err) {
+//             return res.status(500).send(err);
+//         }
 
-        try {
 
 
-            // Instantiate the library with your client id, secret and access token (pulled from dev site)
-            const client = new Vimeo("58133a717ee5c29b2f419d7841021b1fc6d306c1", "NMEyxm7hJ0RPC01v6u8n5Cn+Z0DvfdP7YeYLVGYdrfx+62BmhW9fwKJtOI2pw6OBuVOeObUoJvBlMbYoWedlobZ13teA3ewTO16+Tg2WrhbO1pTMgVnPvJHpB+cK2X8m", "b08f6b1dab35f2ae9ebb4e44ca25d9f2")
+//         const Vimeo = require('vimeo').Vimeo
 
-            // Create a variable with a hard coded path to your file system
+//         try {
 
-            console.log('Uploading: ' + filePath)
 
-            const params = {
-                name: uploadedFile.name,
-                description: "This video was uploaded through the Vimeo API's NodeJS SDK."
-            }
+//             // Instantiate the library with your client id, secret and access token (pulled from dev site)
+//             const client = new Vimeo("58133a717ee5c29b2f419d7841021b1fc6d306c1", "NMEyxm7hJ0RPC01v6u8n5Cn+Z0DvfdP7YeYLVGYdrfx+62BmhW9fwKJtOI2pw6OBuVOeObUoJvBlMbYoWedlobZ13teA3ewTO16+Tg2WrhbO1pTMgVnPvJHpB+cK2X8m", "b08f6b1dab35f2ae9ebb4e44ca25d9f2")
 
-            client.upload(
-                filePath,
-                params,
-                function (uri) {
-                    io.emit('upload_progress', { percentage: 100 });
+//             // Create a variable with a hard coded path to your file system
 
-                    // Get the metadata response from the upload and log out the Vimeo.com url
-                    client.request(uri + '?fields=link', function (error, body, statusCode, headers) {
-                        if (error) {
-                            console.log('There was an error making the request.')
-                            console.log('Server reported: ' + error)
-                            return
-                        }
+//             console.log('Uploading: ' + filePath)
 
-                        console.log('"' + filePath + '" has been uploaded to ' + body.link)
+//             const params = {
+//                 name: uploadedFile.name,
+//                 description: "This video was uploaded through the Vimeo API's NodeJS SDK."
+//             }
 
-                        // Make an API call to edit the title and description of the video.
-                        client.request({
-                            method: 'PATCH',
-                            path: uri,
-                            params: {
-                                name: 'Vimeo API SDK test edit',
-                                description: "This video was edited through the Vimeo API's NodeJS SDK."
-                            }
-                        }, function (error, body, statusCode, headers) {
-                            if (error) {
-                                console.log('There was an error making the request.')
-                                console.log('Server reported: ' + error)
-                                return
-                            }
+//             client.upload(
+//                 filePath,
+//                 params,
+//                 function (uri) {
+//                     io.emit('upload_progress', { percentage: 100 });
 
-                            console.log('The title and description for ' + uri + ' has been edited.')
+//                     // Get the metadata response from the upload and log out the Vimeo.com url
+//                     client.request(uri + '?fields=link', function (error, body, statusCode, headers) {
+//                         if (error) {
+//                             console.log('There was an error making the request.')
+//                             console.log('Server reported: ' + error)
+//                             return
+//                         }
 
-                            client.request(
-                                uri + '?fields=link',
-                                function (error, body, statusCode, headers) {
-                                    if (error) {
-                                        console.log('There was an error making the request.')
-                                        console.log('Server reported: ' + error)
-                                        return
-                                    }
+//                         console.log('"' + filePath + '" has been uploaded to ' + body.link)
+
+//                         // Make an API call to edit the title and description of the video.
+//                         client.request({
+//                             method: 'PATCH',
+//                             path: uri,
+//                             params: {
+//                                 name: 'Vimeo API SDK test edit',
+//                                 description: "This video was edited through the Vimeo API's NodeJS SDK."
+//                             }
+//                         }, function (error, body, statusCode, headers) {
+//                             if (error) {
+//                                 console.log('There was an error making the request.')
+//                                 console.log('Server reported: ' + error)
+//                                 return
+//                             }
+
+//                             console.log('The title and description for ' + uri + ' has been edited.')
+
+//                             client.request(
+//                                 uri + '?fields=link',
+//                                 function (error, body, statusCode, headers) {
+//                                     if (error) {
+//                                         console.log('There was an error making the request.')
+//                                         console.log('Server reported: ' + error)
+//                                         return
+//                                     }
                             
-                                    console.log('Your video link is: ' + body.link );
+//                                     console.log('Your video link is: ' + body.link );
                             
-                                    const videoId = body.link.substring(body.link.lastIndexOf('/') + 1); // Extract video ID
-                                    const videoLink = `https://player.vimeo.com/video/${videoId}`; // Construct new link
+//                                     const videoId = body.link.substring(body.link.lastIndexOf('/') + 1); // Extract video ID
+//                                     const videoLink = `https://player.vimeo.com/video/${videoId}`; // Construct new link
                             
-                                    // Generate the iframe embed code
-                                    io.emit('videoLink', { videoLink: videoLink });
+//                                     // Generate the iframe embed code
+//                                     io.emit('videoLink', { videoLink: videoLink });
 
                              
-                                }
-                            );
+//                                 }
+//                             );
 
-                        })
-                    })
-                },
-                function (bytesUploaded, bytesTotal) {
-                    const percentage = (bytesUploaded / bytesTotal * 100).toFixed(2)
-                    io.emit('upload_progress', { percentage });
+//                         })
+//                     })
+//                 },
+//                 function (bytesUploaded, bytesTotal) {
+//                     const percentage = (bytesUploaded / bytesTotal * 100).toFixed(2)
+//                     io.emit('upload_progress', { percentage });
 
-                    console.log(bytesUploaded, bytesTotal, percentage + '%')
-                },
-                function (error) {
-                    console.log('Failed because: ' + error)
-                }
-            )
-        } catch (error) {
-            console.error('ERROR: For this example to run properly you must create an API app at ' +
-                'https://developer.vimeo.com/apps/new and set your callback url to ' +
-                '`http://localhost:8080/oauth_callback`.')
-            console.error('ERROR: Once you have your app, make a copy of `config.json.example` named ' +
-                '`config.json` and add your client ID, client secret and access token.')
-            process.exit()
-        }
-
-
+//                     console.log(bytesUploaded, bytesTotal, percentage + '%')
+//                 },
+//                 function (error) {
+//                     console.log('Failed because: ' + error)
+//                 }
+//             )
+//         } catch (error) {
+//             console.error('ERROR: For this example to run properly you must create an API app at ' +
+//                 'https://developer.vimeo.com/apps/new and set your callback url to ' +
+//                 '`http://localhost:8080/oauth_callback`.')
+//             console.error('ERROR: Once you have your app, make a copy of `config.json.example` named ' +
+//                 '`config.json` and add your client ID, client secret and access token.')
+//             process.exit()
+//         }
 
 
 
 
-    });
 
 
-    res.send(excelBuffer);
+//     });
 
 
-});
+//     res.send(excelBuffer);
+
+
+// });
 
 
 
@@ -314,6 +315,7 @@ app.post("/teacher/uploadVideo", async (req, res) => {
 
 
 // 404 page
+
 app.use((req, res) => {
     res.status(404).render('404', { title: '404' });
 });

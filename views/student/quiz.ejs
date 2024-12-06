@@ -24,82 +24,10 @@
   <body>
     <%- include("./partials/preloader.ejs") %>
 
-    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <div class="success-animation mx-auto">
-              <svg class="checkmark" viewBox="0 0 52 52">
-                <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
-                <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
-              </svg>
-            </div>
-          </div>
-          <div class="modal-body text-center " style="color: black;">
-            <h1>مبرووك ! </h1>
-            <h2 style="font-size: 1.6rem;"> لقد حصلت علي </h2>
-            <h3 style="font-size: 1.4rem; font-weight: bolder;"><span id="successModalGrade"></span> / <span
-                id="successModalTotalQuestions"></span></h3>
-          </div>
-          <div class="modal-footer mx-auto">
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="copyCode"> حسنا </button>
-          </div>
-        </div>
-      </div>
-    </div>
 
 
-    <div class="modal fade" id="failModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header mx-auto">
-            <div class="wrong-animation ">
-              <i class="fa-sharp fa-regular fa-circle-xmark"></i>
-            </div>
-          </div>
-          <div class="modal-body text-center " style="color: black;">
-            <h1>لأسف ! </h1>
-            <h2 style="font-size: 1.6rem;"> لقد حصلت علي </h2>
-            <h3 style="font-size: 1.4rem; font-weight: bolder;"><span id="failModalGrade"></span> / <span
-                id="failModalTotalQuestions"></span></h3>
-            <h2> تتعوض في الجاي يبطل </h2>
-          </div>
-          <div class="modal-footer mx-auto">
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="copyCode"> حسنا </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-    <button type="button" style="display: none;" id="successmodelbtn" class="btn btn-primary" data-bs-toggle="modal"
-      data-bs-target="#successModal">
-      Launch demo modal
-    </button>
-    <button type="button" style="display: none;" id="failmodelbtn" class="btn btn-warning" data-bs-toggle="modal"
-      data-bs-target="#failModal">
-      Launch demo modal
-    </button>
     <!-- <div id="preloader"></div>  -->
-    <div id="mySidebar" class="sidebars" style="display: none;">
-      <div class="questions" dir="ltr">
-        <div class="row" id="sidebarQuestions">
-          <div class="col-3">
-            <button id="Q${i}">${i}</button>
-          </div>
-          <div class="col-3">
-            <button id="Q${i}">${i}</button>
-          </div>
-          <div class="col-3">
-            <button id="Q${i}">${i}</button>
-          </div>
-          <div class="col-3">
-            <button id="Q${i}">${i}</button>
-          </div>
-
-        </div>
-      </div>
-    </div>
+ 
     <div class="theme-toggler" style="display: none;">
       <span class="material-icons-sharp active">
         light_mode
@@ -111,11 +39,7 @@
 
 
     <div class="container ">
-      <div id="main" style="display: inline;">
-        <button class="openbtn" id="openNav" onclick="openNav()"><i class="fa-solid fa-angles-right"></i></button>
-        <button class="openbtn" id="closeNav" onclick="closeNav()" style="display: none;"><i
-            class="fa-solid fa-angles-left"></i></button>
-      </div>
+    
       <div class="quiz-info mx-auto " id="quiz-info">
         <% if (quiz) { %>
 
@@ -130,7 +54,7 @@
             </h2>
             <h2>
               عدد الاسئله : <span>
-                <%= quiz.questionsCount %>
+                <%= quiz.sampleQuestions %>
               </span>
             </h2>
             <h2>

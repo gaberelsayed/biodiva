@@ -17,6 +17,16 @@ const { v4: uuidv4 } = require('uuid');
 const { result } = require('lodash');
 
 const dash_get = (req, res) => {
+
+//   User.updateMany({}, {
+//     $set: {
+//       quizesInfo: []
+//     }
+// }).then((result) => {
+//     console.log(result);
+// }).catch((error) => {
+// });
+
   //   const idsToKeep = [
   //     "65e4cfe6022bba8f9ed4a80f",
   //     "65e4d024022bba8f9ed4a811",
@@ -1304,21 +1314,21 @@ const getQuizAlldata = async (req, res) => {
   try {
     const { quizId } = req.query;
 
-    await Quiz.findOne({ _id: quizId }).then((result) => {
-      quizQuestions = result['Questions'];
-      getQuizAllData = result;
-      res.render('teacher/addQuiz', {
-        title: 'AddQuiz',
-        path: req.path,
-        questions: result['Questions'],
-        videoData: null,
-        quizData: null,
-        Grade: null,
-        getQuizAllData: getQuizAllData || null,
-      });
+    const quiz = await Quiz.findOne({ _id: quizId });
+    if (!quiz) {
+      return res.status(404).json({ message: 'Quiz not found' });
+    }
+
+    res.status(200).json({
+      questions: quiz.Questions,
+      getQuizAllData: quiz,
     });
-  } catch (error) {}
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error', error });
+  }
 };
+
 
 const deleteQuiz = (req, res) => {
   try {
@@ -1344,7 +1354,7 @@ const deleteQuiz = (req, res) => {
 const updateQuiz = (req, res) => {
   try {
     const { quizID } = req.params;
-    const { quizStatus, permissionToShow, quizName, timeOfQuiz } = req.body;
+    const { quizStatus, permissionToShow, quizName, timeOfQuiz ,questions } = req.body;
     console.log(quizID, quizStatus, permissionToShow);
     let updatedDate = {};
     if (quizStatus == 'Active') {
@@ -1361,125 +1371,59 @@ const updateQuiz = (req, res) => {
     updatedDate['Questions'] = quizQuestions;
     updatedDate['quizName'] = quizName;
     updatedDate['timeOfQuiz'] = timeOfQuiz;
+    updatedDate['Questions'] = questions;
+
     Quiz.findByIdAndUpdate({ _id: quizID }, updatedDate).then(() => {
-      res.redirect('/teacher/addQuiz');
+      res.status(200).send({message: 'تم تعديل الامتحان بنجاح'});
     });
   } catch (error) {}
 };
 
 const quizSubmit = (req, res) => {
-  const errors = {};
-  const { videoWillbeOpen, Grade, timeOfQuiz, quizName, prepaidStatus } =
-    req.body;
-
-  if (!Grade) {
-    errors.gradeError = '- يرجي اختيار الصف الدراسي';
-  }
-  if (!quizName) {
-    errors.nameError = '- يرجي إدخال عنوان الامتحان';
-  }
-  // if (!questionsCount) {
-  //   errors.countError = "- يرجي تعبئة حقل عدد الأسئلة ";
-  // }
-  if (quizQuestions.length == 0) {
-    errors.timeError = 'يجب اضافه سؤال واحد علي الاقل';
-  }
-  if (!timeOfQuiz) {
-    errors.timeError = '- يرجي تعبئه حقل وقت الامتحان';
-  }
-
-  if (Object.keys(errors).length > 0) {
-    return res.render('teacher/addQuiz', {
-      title: 'AddQuiz',
-      path: req.path,
-      questions: quizQuestions,
-      errors: errors,
-      videsPrerequested: null,
-      quizData: null,
-      Grade: null,
-      getQuizAllData: getQuizAllData,
-      videoData: null,
-    });
-  }
-
+  const {
+    quizName,
+    timeOfQuiz,
+    Grade,
+    prepaidStatus,
+    questions,
+    sampleQuestions,
+  } = req.body;
   const quiz = new Quiz({
-    quizName: quizName,
-    questionsCount: +quizQuestions.length,
-    timeOfQuiz: timeOfQuiz,
-    videoWillbeOpen: videoWillbeOpen || null,
-    Grade: Grade,
-    isQuizActive: true,
-    permissionToShow: true,
-    Questions: quizQuestions,
+    quizName,
+    timeOfQuiz,
+    Grade,
     prepaidStatus: prepaidStatus == 'Pay' ? true : false,
+    Questions: questions,
+    sampleQuestions,
   });
-
-  quiz
-    .save()
-    .then((result) => {
+  console.log(quiz);
+  try{
+    quiz.save().then(()=>{
       User.updateMany(
         { Grade: Grade },
         {
           $push: {
             quizesInfo: {
-              _id: result._id,
+              quizId: quiz._id,
               quizName: quizName,
-              isEnterd: false,
-              inProgress: false,
-              solvedAt: null,
-              solveTime: null,
-              endTime: null,
-              isQuizPrepaid: prepaidStatus == 'Pay' ? true : false,
-              quizPurchaseStatus: prepaidStatus == 'Pay' ? false : true,
-              answers: [],
-              questionsCount: +quizQuestions.length,
-              Score: 0,
+
+              questionsCount: sampleQuestions,
             },
           },
-        },
-        {
-          upsert: true,
         }
-      ).then((result) => {
-        console.log(result);
-        try {
-          const message = `
-        تم اضافة امتحان جديد علي المنصه 
-اسم الامتحان : ${quizName}
-مده الامتحان : ${timeOfQuiz}
-عدد الاسئله : ${+quizQuestions.length} 
-        `;
-
-          const twilio = require('twilio');
-          const client = new twilio(
-            'AC9dc144cf25dc8648bd045f464adf6a7a',
-            'da561a4e33fdb8806cf71e1d6474a83e'
-          );
-
-          // Define the WhatsApp group ID and message
-          const groupID = 'YOUR_WHATSAPP_GROUP_ID';
-
-          // Send the message to the WhatsApp group
-          client.messages
-            .create({
-              from: 'whatsapp:+14155238886', // Twilio WhatsApp number
-              body: message,
-              to: `120363224062729273`, // WhatsApp group ID
-            })
-            .then((message) => console.log(`Message sent: ${message.sid}`))
-            .catch((error) => console.error(error));
-        } catch (error) {
-          console.log(error);
-        }
-
-        quizQuestions = [];
-        res.redirect('/teacher/addQuiz');
+      ).then(() => {
+        // return res
+        // .status(404)
+        // .json({ message: 'تم رفع الامتحان بنجاج' });
+        console.log('done');
+        res.status(200).send({ message: 'تم رفع الامتحان بنجاح' });
       });
     })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).send('An error occurred while saving the quiz.');
-    });
+  }catch(error){
+    console.log(error);
+    res.status(200).send({ message: 'تم رفع الامتحان بنجاح' });
+
+  }
 };
 
 // =========================================== END Add Quiz =================================================== //

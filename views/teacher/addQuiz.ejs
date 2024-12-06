@@ -79,7 +79,7 @@
                     <div class="row mt-1">
                         <div class="col-md-6">
                         <form  action="/teacher/addQuiz" method="get" id="getVideosToQuiz" >
-                            <select name="Grade" id="Grade" class="slections" required>
+                            <select name="Grade" class="slections" required>
                                 <option value="">اختر الصف الدراسي</option>
                         <% if (Grade) { %>
                                 <option value="Grade1" <%= Grade === 'Grade1' ? 'selected' : '' %>>الصف الاول الثانوي</option>
@@ -97,8 +97,10 @@
                             <button class=" btnstartAddQuiz" type="submit" >جلب البيانات   </button>
 
                         </form>
+
+
                         <h1>اضافه امتحان</h1>
-                        <form  action="/teacher/QuizSubmit" method="post" class="addQuizNameForm">
+                        <div>
 
                             <select name="Grade" id="Grade" class="slections" required>
                                 <option class="shape"  value="">اختر الصف الدراسي</option>
@@ -106,7 +108,7 @@
                                 <option value="Grade2">الصف الثاني الثانوي </option>
                                 <option value="Grade3">الصف الثالث الثانوي</option>
                             </select>
-                        <select id="videosName" name="videoWillbeOpen"  class="slections" >
+                        <!-- <select id="videosName" name="videoWillbeOpen"  class="slections" >
                             <option value="">اختر اسم الفيديو الذي سيفتح </option>
                             <% if (videoData) { %>
                                 <% videoData.forEach(chapter => { %>
@@ -116,83 +118,76 @@
                                 <% }) %>
                             <% } %>
                         
-                        </select>
+                        </select> -->
 
                         <input type="number" class="timeofquiz" name="timeOfQuiz" id="timeofquiz" placeholder="وقت الامتحان" required/>
                         <input type='text' name='quizName'  class="timeofquiz" id='nameOfNewQuiz' placeholder="اسم الامتحان" required/>
+                        <input type='number' name='sampleQuestions'  class="timeofquiz w-25" id='sampleQuestions' placeholder="  عدد الاسئله للطالب" required/>
                         
-                        <select name="prepaidStatus"  class="slections" required>
+                        <select name="prepaidStatus" id="prepaidStatus"  class="slections" required>
                             <option selected value="Free">مجاني</option>
                             <option  value="Pay">مدفوع</option>
                         </select>
 
-                        <button class=" btnstartAddQuiz" type="submit" > رفع جميع البيانات</button>
-                        <h2 style="color: rgb(229, 23, 23);">
-                            <% if (typeof errors !== 'undefined'  ) { %>
-                                <ul class="errors">
-                                <% for (const key in errors) { %>
-                                    <li class="erorr"><%= errors[key] %></li>
-                                <% } %>
-                            
-                                </ul>
-                            <% } %>
+                        <button class=" btnstartAddQuiz" type="button"  id="SubmitQuiz"> رفع جميع البيانات</button>
+                        <h2 style="color: rgb(229, 23, 23);" id="message">
+                           
                         </h2>
-                        </form>
+                    </div>
                       
                         </div>
                         <div class="col-md-6">
-                            <form action="/teacher/getQuizAlldata" method="get">
+                          <form id="quizForm">
+                            <select id="sel" name="quizId" required>
+                                <option value="">اختر الامتحان</option>
+                                <% if (quizData) { %>
+                                <% quizData.forEach(quiz => { %>
+                                    <option value="<%= quiz._id %>"><%= quiz.quizName %></option>
+                                <% }) %>
+                                <% } %>
+                            </select>
 
-                                <select id="sel" name="quizId" required>
-                                    <option value="">اختر الامتحان</option>
-                                    <% if (quizData) { %>
-                                        <% quizData.forEach(quiz => { %>
-                                                <option value="<%= quiz._id %>"><%= quiz.quizName %></option>
-                                        <% }) %>
-                                    <% } %>
-                                </select>
-
-                                <button id="collectData" type="submit"  >جمع البيانات <i class="fa-solid fa-database"></i></button>
+                            <button id="collectData" type="button">جمع البيانات <i class="fa-solid fa-database"></i></button>
                             </form>
 
-                            <% if (getQuizAllData) { %>
-                            <form action="/teacher/updateQuiz/<%= getQuizAllData._id %>" method="post">
+
+                            <form  method="post" id="UpdateForm">
 
                                 <div class="more-options ">
                                     <h2>خيارات اضافيه : </h2>
                             
                                    <div class="row">
                                     <div class="col-md-4">
-                                        <input type='text' name='quizName'  class="timeofquiz w-100" id='nameOfNewQuiz' value="<%= getQuizAllData.quizName %>"  placeholder="اسم الامتحان" required/>
+                                        <input type='text' name='quizName'  class="timeofquiz w-100" id='nameOfQuizUpdate' value=""  placeholder="اسم الامتحان" required/>
 
                                     </div>
                                     <div class="col-md-4">
-                                        <input type="number" class="timeofquiz w-100" name="timeOfQuiz" id="timeofquiz" value="<%= getQuizAllData.timeOfQuiz %>" placeholder="وقت الامتحان" required/>
+                                        <input type="number" class="timeofquiz w-100" name="timeOfQuiz" id="timeofquizUpdate" value="" placeholder="وقت الامتحان" required/>
 
                                     </div>
                                     <div class="col-md-4">
 
-                                        <select name="quizStatus" class="w-100" id="quizStatus" required>
+                                        <select name="quizStatus" class="w-100 quizStatus" id="quizStatusUpdate" required>
                                             <option value="">حاله الامتحان</option>
-                                            <option value="Active" <%= getQuizAllData.isQuizActive  ? 'selected' : '' %> >تفعيل الامتحان واخفاء الاجابات </option>
-                                            <option value="disActive" <%= !getQuizAllData.isQuizActive  ? 'selected' : '' %>>ايقاف الامتحان واظهار الاجابات</option>
+                                            <option value="Active"  >تفعيل الامتحان واخفاء الاجابات </option>
+                                            <option value="disActive" >ايقاف الامتحان واظهار الاجابات</option>
                                         </select> 
 
                                     </div>
                                 
                                     <div class="col-md-4 mt-3">  
-                                        <select name="permissionToShow" class="w-100" id="quizStatus" required>
+                                        <select name="permissionToShow" class="w-100 quizStatus" id="permissionToShowUpdate" required>
                                         <option value="">حاله الامتحان</option>
-                                        <option  value="apper" <%= getQuizAllData.permissionToShow  ? 'selected' : '' %>>اظهار الامتحان</option>
-                                        <option  value="disApper"  <%=  !getQuizAllData.permissionToShow  ? 'selected' : '' %>>اخفاء الامتحان</option>
+                                        <option  value="apper" >اظهار الامتحان</option>
+                                        <option  value="disApper"  >اخفاء الامتحان</option>
                                         </select> 
                                 </div>
                                     <div class="col-md-4 mt-3">
-                                             <button type="button" class="btn btn-outline-danger me-2 w-100" data-bs-toggle="modal" data-bs-target="#exampleModal">حذف الامتحان <i class="fa-solid fa-trash"></i></button>
+                                             <button type="button" class="btn btn-outline-danger me-2 w-100 d-none" id="removeQuiz" data-bs-toggle="modal" data-bs-target="#exampleModal">حذف الامتحان <i class="fa-solid fa-trash"></i></button>
 
                                     </div>
                                     <div class="col-md-4 mt-3">
-                                            <button type="submit"  class="w-100 btn btn-outline-warning" >حفظ التغيرات</button>
+                                            <button type="submit"  class="w-100 btn btn-outline-warning d-none" id="SaveUpdates" >حفظ التغيرات</button>
 
                                     </div>
                                    </div>
@@ -203,8 +198,8 @@
                               
                                 </div> 
                             </form>
-                            <% } %>
-                          </div>
+
+                         </div>
                     </div>
                         
                     <div class="row">
@@ -213,30 +208,23 @@
                             
                             <div class="form-question">
                             
-                                <form action="/teacher/addQuestion" method="post" id="addQuestionForm" >
-                                    <div class="box box1"> 
-                                        <img id="questionimg" >  
-                                    </div>
-                                    <input type="file"  id="selQuestionPhotoBtn" class="Qcount" placeholder="اختر صوره">
-                                    <button id="progress-bar" name="Progress" class="Qcount"></button>
-                                    <input type="text" name="questionPhoto" id="questionPhoto" value="" class="d-none">
-                                    <textarea class="form-control answer" name="Qtitle"  cols="30" rows="2"
-                                        placeholder="عنوان السؤال" required></textarea>
-                                    <textarea class="form-control answer" name="answer1"  cols="30" rows="2"
-                                        placeholder="الاجابه الاولي" required></textarea>
-                                    <textarea class="form-control answer" name="answer2"  cols="30" rows="2"
-                                        placeholder="الاجابه الثانيه" required></textarea>
-                                    <textarea class="form-control answer" name="answer3"  cols="30" rows="2"
-                                        placeholder="الاجابه الثالثه" required></textarea>
-                                    <textarea class="form-control answer" name="answer4"  cols="30" rows="2"
-                                        placeholder="الاجابه الرابعه" required></textarea>
-                                    <input type="number" name="ranswer" id="ranswer" required placeholder="رقم الاجابه الصحيحه"> 
-                            
-                                    <div class="form-buttons">
-                                        <button type="submit" id="add" class="add"><i class="fa-solid fa-plus"></i></button>
-                                    </div>
-                                </form>
-
+                               <div id="addQuestionForm">
+                                <div class="box box1">
+                                    <img id="questionimg">
+                                </div>
+                                <input type="file" id="selQuestionPhotoBtn" class="Qcount" placeholder="اختر صوره" onchange="previewImage(event)">
+                                <button id="progress-bar" name="Progress" class="Qcount"></button>
+                                <input type="text" name="questionPhoto" id="questionPhoto" value="" class="d-none">
+                                <textarea class="form-control answer" id="Qtitle" cols="30" rows="2" placeholder="عنوان السؤال" required></textarea>
+                                <textarea class="form-control answer" id="answer1" cols="30" rows="2" placeholder="الاجابه الاولي" required></textarea>
+                                <textarea class="form-control answer" id="answer2" cols="30" rows="2" placeholder="الاجابه الثانيه" required></textarea>
+                                <textarea class="form-control answer" id="answer3" cols="30" rows="2" placeholder="الاجابه الثالثه" required></textarea>
+                                <textarea class="form-control answer" id="answer4" cols="30" rows="2" placeholder="الاجابه الرابعه" required></textarea>
+                                <input type="number" id="ranswer" required placeholder="رقم الاجابه الصحيحه">
+                                <div class="form-buttons">
+                                    <button type="button" id="add" class="add" onclick="addQuestion()"><i class="fa-solid fa-plus"></i> Add Question</button>
+                                </div>
+                            </div>
 
                             </div>
 
@@ -246,29 +234,8 @@
                         
                             <div id="show-data-Added">
 
-                                <% questions.forEach((question, index) => { %>
-                            
-                                    <form action="/teacher/updateQuestion/<%= question.code %>"  method="post"   class="form-question-added">
-                                        <% if (question.questionPhoto!="") { %>
-                                            <div class="box box1"> 
-                                                <img  src="<%= question.questionPhoto %>" >  
-                                            </div>
-                                        <% } %>
-                                         <input type="text" class="d-none" name="questionPhoto" value="<%= question.questionPhoto||"" %>">
-                                        <textarea class="form-control answer" disabled name="Qtitle" id="Qtitle_<%= question.code %>" cols="30" rows="2"><%= question.title %> </textarea>
-                                        <textarea class="form-control answer" disabled name="answer1" id="answer1_<%= question.code %>" cols="30" rows="2"><%= question.answer1 %> </textarea>
-                                        <textarea class="form-control answer" disabled name="answer2" id="answer2_<%= question.code %>" cols="30" rows="2"><%= question.answer2 %> </textarea>
-                                        <textarea class="form-control answer" disabled name="answer3" id="answer3_<%= question.code %>" cols="30" rows="2"><%= question.answer3 %> </textarea>
-                                        <textarea class="form-control answer" disabled name="answer4" id="answer4_<%= question.code %>" cols="30" rows="2"><%= question.answer4 %> </textarea>
-                                        <input type="number" name="ranswer" id="ranswer_<%= question.code %>" disabled value=<%= question.ranswer %>   class="rightanswer">
-                                        <input type="number" name="code"   style="display: none;" value=<%= question.code  %>   class="rightanswer">
-                                        <div class="form-buttons">
-                                        <a href="/teacher/deleteQuestion/<%= question.code %>"  class="deleteBTN"  > <i class="fa-solid fa-trash"></i></a>
-                                        <button  type="button" class="update" onclick="openToUpdate(this.id)" id="U_<%= question.code   %>" ><i class="fa-solid fa-pen-to-square"></i></button>
-                                        <button type="submit" class="update" > Edit </button>
-                                        </div>
-                                    </form>
-                                <% }); %>
+                              <div id="questionsContainer"></div>
+
 
                             </div>
 
@@ -308,8 +275,8 @@
       sdieMenu.style.display = "none";
     });
 
-        const addQuestionForm = document.getElementById('addQuestionForm');
-        const message = document.getElementById('message');
+     
+      
         const showDataAdded = document.getElementById('show-data-Added');
         const getVideosToQuiz = document.getElementById('getVideosToQuiz')
         
@@ -329,6 +296,309 @@
         }
 
       </script>
+
+
+<script>
+    let questions = []; // Array to hold questions
+    const SubmitQuiz = document.getElementById('SubmitQuiz');
+    const add = document.getElementById('add');
+    const questionimg = document.getElementById('questionimg');
+    const title = document.getElementById('Qtitle');
+    const answer1 = document.getElementById('answer1');
+    const answer2 = document.getElementById('answer2');
+    const answer3 = document.getElementById('answer3');
+    const answer4 = document.getElementById('answer4');
+    const ranswer = document.getElementById('ranswer');
+    const questionPhoto = document.getElementById('questionPhoto');
+    let editIndex = null; 
+
+    function addQuestion() {
+    // Validate the input fields
+        if (!title.value || !answer1.value || !answer2.value || !answer3.value || !answer4.value || !ranswer.value) {
+            alert('برجاء ادخال جميع البيانات');
+            return;
+        }
+
+        const question = {
+            id: Date.now(), // Unique ID for the question
+            questionPhoto: questionPhoto.value,
+            title: title.value,
+            answer1: answer1.value,
+            answer2: answer2.value,
+            answer3: answer3.value,
+            answer4: answer4.value,
+            ranswer: ranswer.value
+        };
+
+        if (editIndex !== null) {
+            // Update the existing question at the specified index
+            questions[editIndex] = question;
+            editIndex = null; // Reset the edit index
+            add.innerHTML = 'Add Question'; // Reset button text
+        } else {
+            // Add a new question to the array
+            questions.push(question);
+        }
+
+        renderQuestions(); // Re-render the list of questions
+        clearForm(); // Clear the input form
+    }
+
+    function editQuestion(index) {
+        const question = questions[index];
+        title.value = question.title;
+        answer1.value = question.answer1;
+        answer2.value = question.answer2;
+        answer3.value = question.answer3;
+        answer4.value = question.answer4;
+        ranswer.value = question.ranswer;
+        questionPhoto.value = question.questionPhoto;
+
+        editIndex = index; // Set the index for updating
+        add.innerHTML = 'Update'; // Change the button text to "Update"
+
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth', // Smooth scrolling to the top
+        });
+    }
+
+
+    function deleteQuestion(index) {
+        questions.splice(index, 1);
+        renderQuestions();
+    }
+
+    function clearForm() {
+            title.value = '';
+            answer1.value = '';
+            answer2.value = '';
+            answer3.value = '';
+            answer4.value = '';
+            ranswer.value = '';
+            questionPhoto.value = '';
+            questionimg.src = '';
+            }
+
+    function previewImage(event) {
+        const reader = new FileReader();
+        reader.onload = function () {
+            document.getElementById('questionimg').src = reader.result;
+            document.getElementById('questionPhoto').value = reader.result;
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+
+    function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+
+            questions.forEach((question, index) => {
+                const questionHTML = `
+                    <div class="form-question-added" id="question_${question.id}">
+
+                        ${question.questionPhoto ? ` 
+                        <div class="box box1">
+                        <img src="${question.questionPhoto}">
+                        </div>
+                        ` : ''}
+                    
+                        <textarea class="form-control answer" disabled>${question.title}</textarea>
+                        <textarea class="form-control answer" disabled>${question.answer1}</textarea>
+                        <textarea class="form-control answer" disabled>${question.answer2}</textarea>
+                        <textarea class="form-control answer" disabled>${question.answer3}</textarea>
+                        <textarea class="form-control answer" disabled>${question.answer4}</textarea>
+                        <input type="number" disabled value="${question.ranswer}" class="rightanswer">
+                        <div class="form-buttons">
+                            <button type="button" class="update" onclick="editQuestion(${index})"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                            <button type="button" class="deleteBTN" onclick="deleteQuestion(${index})"><i class="fa-solid fa-trash"></i> Delete</button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += questionHTML;
+            });
+        }
+
+    SubmitQuiz.addEventListener('click',async()=>{
+        console.log(questions)
+        const quizName = document.getElementById('nameOfNewQuiz').value;
+        const timeOfQuiz = document.getElementById('timeofquiz').value;
+        const Grade = document.getElementById('Grade').value;
+        const prepaidStatus = document.getElementById('prepaidStatus').value;
+        const sampleQuestions = document.getElementById('sampleQuestions').value
+        console.log(quizName, timeOfQuiz, Grade, prepaidStatus)
+        if(!quizName || !timeOfQuiz || !Grade || !prepaidStatus || questions.length === 0 || !sampleQuestions){
+            alert('برجاء ادخال جميع البيانات')
+            return;
+        }
+
+
+        const quizData = {
+            quizName,
+            timeOfQuiz,
+            Grade,
+            prepaidStatus,
+            questions,
+            sampleQuestions,
+        }
+
+        // console.log(quizData)
+       const response =  await fetch('/teacher/QuizSubmit',{
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(quizData)
+        })
+        console.log(response); // Log the response object
+
+        const data = await response.json()
+        console.log(data)
+        if(response.ok){
+            alert('تم اضافه الامتحان بنجاح')
+            window.location.reload()
+        }else{
+            alert('حدث خطأ ما')
+        }
+
+    })
+    
+
+</script>
+
+
+<script>
+    const quizForm = document.getElementById('quizForm');
+    const collectDataButton = document.getElementById('collectData');
+    let quizId = null;
+    collectDataButton.addEventListener('click', async () => {
+    quizId = document.getElementById('sel').value;
+   
+    if (!quizId) {
+        alert('برجاء اختيار امتحان');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/teacher/getQuizAlldata?quizId=${quizId}`);
+        if (!response.ok) {
+        throw new Error('Failed to fetch quiz data');
+        }
+
+        const data = await response.json();
+        console.log('Fetched Quiz Data:', data);
+
+        // Use the fetched data (e.g., populate a form or render questions)
+        const { getQuizAllData } = data;
+
+        // Example: Log questions and other quiz data
+        questions = data.questions;
+
+        if(questions.length > 0){
+            renderQuestions()
+        }
+        // Optionally call functions to update the DOM
+        renderQuizDetails(getQuizAllData);
+    } catch (error) {
+        console.error(error);
+        alert('حدث خطأ أثناء جلب بيانات الامتحان');
+    }
+    });
+
+
+    function renderQuizDetails(getQuizAllData) {
+        console.log(getQuizAllData)
+        // Render the quiz details (e.g., quiz name, time, status, etc.)
+        const quizName = document.getElementById('nameOfQuizUpdate');
+        const timeOfQuiz = document.getElementById('timeofquizUpdate');
+        const quizStatus = document.getElementById('quizStatusUpdate');
+        const permissionToShow = document.getElementById('permissionToShowUpdate');
+        const SaveUpdates = document.getElementById('SaveUpdates');
+        const removeQuiz = document.getElementById('removeQuiz');
+        quizName.value = getQuizAllData.quizName;
+        timeOfQuiz.value = getQuizAllData.timeOfQuiz;
+        
+        if(getQuizAllData.isQuizActive){
+            quizStatus.value = 'Active'
+        }else{
+            quizStatus.value = 'disActive'
+        }
+        if(getQuizAllData.permissionToShow){
+            permissionToShow.value = 'apper'
+        }else{
+            permissionToShow.value = 'disApper'
+        }
+
+      
+
+        SaveUpdates.classList.remove('d-none');
+        removeQuiz.classList.remove('d-none');  
+     
+
+    }
+
+
+  const UpdateForm = document.getElementById('UpdateForm');   
+
+
+    UpdateForm.addEventListener('submit',async(e)=>{
+        e.preventDefault();
+        const quizName=UpdateForm['quizName'].value;
+        const timeOfQuiz=UpdateForm['timeOfQuiz'].value;
+        const quizStatus=UpdateForm['quizStatus'].value;
+        const permissionToShow=UpdateForm['permissionToShow'].value;
+        console.log(quizStatus)
+        console.log(quizName, timeOfQuiz, quizStatus, permissionToShow, questions)
+
+        if(!quizName || !timeOfQuiz || !quizStatus || !permissionToShow || questions.length === 0){
+            alert('برجاء ادخال جميع البيانات')
+            return;
+        }
+
+        const quizData = {
+            quizName,
+            timeOfQuiz,
+            quizStatus,
+            permissionToShow,
+            questions
+        }
+
+        try{
+     const response = await fetch(`/teacher/updateQuiz/${quizId}`,{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(quizData)
+                })
+                const data = response.json()
+
+                if(response.ok){
+                    alert('تم تحديث الامتحان بنجاح')
+                    window.location.reload()
+                }else{
+                    alert('حدث خطأ ما')
+                }
+        }catch(error){
+            console.error(error);
+            alert('حدث خطأ أثناء تحديث الامتحان');
+        }
+      
+
+
+                
+    })
+
+   
+
+
+
+</script>
+
+
+
+
+
 
 <script type="module" >
     // Import the functions you need from the SDKs you need

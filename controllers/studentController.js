@@ -451,6 +451,7 @@ async function updateWatchInUser(req, res, videoId, chapterID) {
 }
 
 const crypto = require('crypto');
+const { sample } = require('lodash');
 
 // Helper function to generate Bunny.net token
 function generateBunnyToken(tokenSecurityKey, videoId, expirationTimestamp) {
@@ -661,22 +662,25 @@ const exams_get = async (req, res) => {
     // Map through the exams and add additional information
     const paidExams = await Promise.all(
       exams.map(async (exam) => {
+        // console.log(exam);
         const isPaid = req.userData.examsPaid.includes(exam._id);
+         console.log(isPaid);
         const quizUser = req.userData.quizesInfo.find(
-          (quiz) => quiz._id.toString() === exam._id.toString()
+          (quiz) => quiz.quizId.toString() === exam._id.toString()
         );
+       
 
         // Get all user scores for the current quiz
         const users = await User.find({
           Grade: req.userData.Grade,
-          'quizesInfo._id': exam._id,
+          'quizesInfo.quizId': exam._id,
         }).select('quizesInfo.$');
 
         // Extract and sort the scores
         const userScores = users
           .map((user) => ({
             userId: user._id,
-            score: user.quizesInfo[0].Score,
+            score: user.quizesInfo[0].score,
           }))
           .sort((a, b) => b.score - a.score);
 
@@ -690,18 +694,18 @@ const exams_get = async (req, res) => {
           ? {
               isEnterd: quizUser.isEnterd,
               inProgress: quizUser.inProgress,
-              Score: quizUser.Score,
+              score: quizUser.score,
               answers: quizUser.answers,
               rank: userRank, // Add user rank here
               lengthOfUsersTakesQuiz: userScores.length, // Add total number of users who took the quiz
               // Add other properties you want to include
             }
           : null;
-
+            
         return { ...exam.toObject(), isPaid, quizUser: quizInfo };
       })
     );
-
+    console.log(paidExams);
     res.render('student/exams', {
       title: 'Exams',
       path: req.path,
@@ -729,7 +733,7 @@ const buyQuiz = async (req, res) => {
       console.log(req.userData._id);
 
       await User.findOneAndUpdate(
-        { _id: req.userData._id, 'quizesInfo._id': quizObectId },
+        { _id: req.userData._id, 'quizesInfo.quizId': quizObectId },
         {
           $push: { examsPaid: quizId },
           $set: { 'quizesInfo.$.quizPurchaseStatus': true },
@@ -752,7 +756,7 @@ const quiz_get = async (req, res) => {
     const quizId = req.params.quizId;
     const quiz = await Quiz.findById(quizId);
     const quizUser = req.userData.quizesInfo.find(
-      (q) => q._id.toString() === quiz._id.toString()
+      (q) => q.quizId.toString() === quiz._id.toString()
     );
 
     console.log(quiz, quizUser);
@@ -786,12 +790,23 @@ const quiz_get = async (req, res) => {
   }
 };
 
+
+const getRandomQuestions = (questions, numberOfQuestions) => {
+  return questions.sort(() => 0.5 - Math.random()).slice(0, numberOfQuestions);
+};
+
+
 const quizWillStart = async (req, res) => {
   try {
     const quizId = req.params.quizId;
     const quiz = await Quiz.findById(quizId);
+    let randomQuestions = getRandomQuestions(
+      quiz.Questions,
+      quiz.sampleQuestions
+    ); // Select 10 random questions
+    
     const quizUser = req.userData.quizesInfo.find(
-      (q) => q._id.toString() === quiz._id.toString()
+      (q) => q.quizId.toString() === quiz._id.toString()
     );
 
     const durationInMinutes = quiz.timeOfQuiz;
@@ -799,13 +814,14 @@ const quizWillStart = async (req, res) => {
     const endTime = new Date(Date.now() + durationInMinutes * 60000);
     console.log(endTime, durationInMinutes);
     if (!quizUser.endTime) {
-      console.log(quizUser.endTime);
+      // console.log(quizUser.endTime);
       await User.findOneAndUpdate(
-        { _id: req.userData._id, 'quizesInfo._id': quiz._id },
+        { _id: req.userData._id, 'quizesInfo.quizId': quiz._id },
         {
           $set: {
             'quizesInfo.$.endTime': endTime,
             'quizesInfo.$.inProgress': true,
+            'quizesInfo.$.randomQuestions': randomQuestions,
           },
         }
       ).then((result) => {
@@ -843,9 +859,10 @@ const quiz_start = async (req, res) => {
     const quizId = req.params.quizId;
     const quiz = await Quiz.findById(quizId);
     const userQuizInfo = req.userData.quizesInfo.find(
-      (q) => q._id.toString() === quiz._id.toString()
+      (q) => q.quizId.toString() === quiz._id.toString()
     );
-
+    const randomQuestions = userQuizInfo.randomQuestions;
+    console.log(quiz, userQuizInfo);
     // Redirect if quiz or user info not found
     if (
       !quiz ||
@@ -869,30 +886,29 @@ const quiz_start = async (req, res) => {
 
     // Parse query parameter for question number
     let questionNumber = parseInt(req.query.qNumber) || 1;
-    if (questionNumber > quiz.questionsCount) {
-      questionNumber = quiz.questionsCount;
+    if (questionNumber > quiz.sampleQuestions) {
+      questionNumber = quiz.sampleQuestions;
       console.log(questionNumber);
     }
 
     // Find the current question and escape special characters
-    const question = quiz.Questions.find(
-      (q) => q.qNumber.toString() === questionNumber.toString()
-    );
-
+    const question = randomQuestions[questionNumber - 1];
+    console.log(question);
     question.title = escapeSpecialCharacters(question.title);
     question.answer1 = escapeSpecialCharacters(question.answer1);
     question.answer2 = escapeSpecialCharacters(question.answer2);
     question.answer3 = escapeSpecialCharacters(question.answer3);
     question.answer4 = escapeSpecialCharacters(question.answer4);
 
-    res.render('student/quizStart', {
-      title: 'Quiz',
-      path: req.path,
-      quiz,
-      userData: req.userData,
-      question,
-      userQuizInfo,
-    });
+     res.render('student/quizStart', {
+       title: 'Quiz',
+       path: req.path,
+       quiz,
+       userData: req.userData,
+       randomQuestions: randomQuestions,
+       question: { ...question, qNumber : questionNumber },
+       userQuizInfo,
+     });
   } catch (error) {
     res.send(error.message);
   }
@@ -905,12 +921,13 @@ const quizFinish = async (req, res) => {
 
     const quiz = await Quiz.findById(quizId);
     const userQuizInfo = req.userData.quizesInfo.find(
-      (q) => q._id.toString() === quiz._id.toString()
+      (q) => q.quizId.toString() === quiz._id.toString()
     );
     const quizData = req.body;
     let answers = quizData.answers;
     const score = quizData.score;
 
+    console.log(answers, score);
     // Calculate the percentage score
     const scorePercentage = (score / quiz.questionsCount) * 100;
 
@@ -923,60 +940,61 @@ const quizFinish = async (req, res) => {
     if (scorePercentage < 50) {
        
           User.findOneAndUpdate(
-            { _id: req.userData._id, 'quizesInfo._id': quizObjId },
+            { _id: req.userData._id, 'quizesInfo.quizId': quizObjId },
             {
               $set: {
-                
-                'quizesInfo.$.Score':null,
+                'quizesInfo.$.score': null,
                 'quizesInfo.$.inProgress': false,
                 'quizesInfo.$.isEnterd': false,
                 'quizesInfo.$.solvedAt': null,
                 'quizesInfo.$.endTime': null,
               },
-              
             }
-          ).then((result) => {
-           console.log(result);
-          }).catch((error) => {
-            res.send(error.message);
-          });
+          )
+            .then((result) => {
+              console.log(result);
+            })
+            .catch((error) => {
+              res.send({ error: error.message });
+            });
      
-      return res.redirect('/student/exams');
+      return res.status(200).send({ message: 'Quiz finished successfully' });
     }
 
     // Update user's quiz info if score is 60% or above
     User.findOneAndUpdate(
-      { _id: req.userData._id, 'quizesInfo._id': quizObjId },
+      { _id: req.userData._id, 'quizesInfo.quizId': quizObjId },
       {
         $set: {
           'quizesInfo.$.answers': answers,
-          'quizesInfo.$.Score': +score,
-          'quizesInfo.$.inProgress': false,
+          'quizesInfo.$.score': +score,
+          'quizesInfo.$.inProgress': true,
           'quizesInfo.$.isEnterd': true,
           'quizesInfo.$.solvedAt': Date.now(),
           'quizesInfo.$.endTime': null,
         },
-        $inc: { totalScore: +score, totalQuestions: +quiz.questionsCount },
+        $inc: { totalScore: +score, totalQuestions: +quiz.sampleQuestions },
       }
     ).then(async (result) => {
+      console.log(result);
       // Check if there's a corresponding video for the quiz in user's videosInfo
-      const videoInfo = req.userData.videosInfo.find(
-        (video) => video._id === quiz.videoWillbeOpen
-      );
-      if (videoInfo && !videoInfo.isUserEnterQuiz) {
-        // Update the video's entry to mark it as entered by the user
-        await User.findOneAndUpdate(
-          { _id: req.userData._id, 'videosInfo._id': videoInfo._id },
-          { $set: { 'videosInfo.$.isUserEnterQuiz': true } }
-        ).then((result) => {
-          res.redirect('/student/exams');
-        });
-      } else {
-        res.redirect('/student/exams');
-      }
+      // const videoInfo = req.userData.videosInfo.find(
+      //   (video) => video._id === quiz.videoWillbeOpen
+      // );
+      // if (videoInfo && !videoInfo.isUserEnterQuiz) {
+      //   // Update the video's entry to mark it as entered by the user
+      //   await User.findOneAndUpdate(
+      //     { _id: req.userData._id, 'videosInfo._id': videoInfo._id },
+      //     { $set: { 'videosInfo.$.isUserEnterQuiz': true } }
+      //   ).then((result) => {
+      //     res.status(204).send({ message: 'Quiz finished successfully' });
+      //   });
+      // } else {
+     return res.status(200).send({ message: 'Quiz finished successfully' });
+      // }
     });
   } catch (error) {
-    res.send(error.message);
+    return res.status(200).send({error : error.message});
   }
 };
 
@@ -985,12 +1003,11 @@ const quizFinish = async (req, res) => {
 const review_Answers = async (req, res) => {
   try {
     const quizId = req.params.quizId;
-    const quizObjId = new mongoose.Types.ObjectId(quizId);
     const quiz = await Quiz.findById(quizId);
     const userQuizInfo = req.userData.quizesInfo.find(
-      (q) => q._id.toString() === quiz._id.toString()
+      (q) => q.quizId.toString() === quiz._id.toString()
     );
-    const quizData = req.body;
+    const randomQuestions = userQuizInfo.randomQuestions;
 
     // Redirect if quiz or user info not found
     if (!quiz.permissionToShow) {
@@ -1001,13 +1018,10 @@ const review_Answers = async (req, res) => {
     let questionNumber = parseInt(req.query.qNumber) || 1;
     if (questionNumber > quiz.questionsCount) {
       questionNumber = quiz.questionsCount;
-      console.log(questionNumber);
     }
 
     // Find the current question and escape special characters
-    const question = quiz.Questions.find(
-      (q) => q.qNumber.toString() === questionNumber.toString()
-    );
+    const question = randomQuestions[questionNumber - 1];
 
     question.title = escapeSpecialCharacters(question.title);
     question.answer1 = escapeSpecialCharacters(question.answer1);
@@ -1019,8 +1033,9 @@ const review_Answers = async (req, res) => {
       title: 'Quiz',
       path: req.path,
       quiz,
+      randomQuestions: randomQuestions,
       userData: req.userData,
-      question,
+      question : { ...question, qNumber : questionNumber },
       userQuizInfo,
     });
   } catch (error) {

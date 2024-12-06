@@ -12,6 +12,21 @@
    box-shadow: 28px 0px 0 0 rgba(71, 102, 255, 0.921), 22.7px 16.5px 0 0 rgba(71,101,255,0.4), 8.68px 26.6px 0 0 rgba(71,101,255,0.6), -8.68px 26.6px 0 0 rgba(71,101,255,0.8), -22.7px 16.5px 0 0 #4765ff;
    animation: spinner-b87k6z 1s infinite linear;
 }
+.box-img {
+    width: 100%; /* Set to full width of the parent container */
+    max-width: 400px; /* Adjust to your desired max width */
+    height: 300px; /* Ensure fixed height */
+    overflow: hidden; /* Hide any overflow */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.box-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensures the image fills the box without distortion */
+}
 
 @keyframes spinner-b87k6z {
    to {
@@ -87,11 +102,13 @@
     <div id="mySidebar" class="sidebars" >
       <div class="questions" dir="ltr">
         <div class="row" id="sidebarQuestions">
-          <% quiz["Questions"].forEach(quesion => { %>
-            <div class="col-3">
-              <button onclick="window.location.href='/student/quizStart/<%=quiz._id%>?qNumber=<%= quesion.qNumber %>'"><%= quesion.qNumber %></button>
-            </div>
-          <% }) %>
+          <% randomQuestions.forEach((question, index) => { %>
+          <div class="col-3">
+            <button onclick="window.location.href='/student/quizStart/<%= quiz._id %>?qNumber=<%= index + 1 %>'">
+              <%= index + 1 %>
+            </button>
+          </div>
+        <% }) %>
 
   
         </div>
@@ -119,9 +136,6 @@
    
 
 
-
-
-
           <div class="quizStart" >
             <div class="row">
 
@@ -130,7 +144,7 @@
               </div>
               <div class="col ">
                 <div class="questionsLeft float-end"><span id="QuestionInProgress">1</span> / <span>
-                    <%= quiz.questionsCount %>
+                    <%= randomQuestions.length %>
                   </span></div>
               </div>
             </div> 
@@ -205,11 +219,12 @@ if (localStorage.getItem("answers")) {
 
 
 const quizData = <%- JSON.stringify(quiz) %>;
+const quizQuestions = <%- JSON.stringify(randomQuestions) %>;
 const question = <%- JSON.stringify(question) %>;
 const userQuizInfo = <%- JSON.stringify(userQuizInfo) %>;
-console.log(quizData['Questions']);
-endTime = new Date(userQuizInfo.endTime).getTime(); // Set endTime from userQuizInfo
 
+// console.log(quizData['Questions']);
+endTime = new Date(userQuizInfo.endTime).getTime(); // Set endTime from userQuizInfo
 // ==================  Timer  ============== //
  // Timer setup with proper server time sync
   function updateTimer() {
@@ -242,7 +257,7 @@ if (question && question.qNumber) {
 }
 
 // Check if the current question number is equal to the total number of questions
-if (qNumber == quizData.questionsCount) {
+if (qNumber == quizData.sampleQuestions) {
   document.querySelector("#next").style.display = "none";
   document.querySelector("#finish").removeAttribute("disabled");
 } else if (qNumber == 1) {
@@ -317,10 +332,9 @@ function next() {
 
     document.querySelector("#prev").style.display = "inline";
     qNumber++;
-    console.log(answers);
     localStorage.setItem("answers", JSON.stringify(answers));
 
-    if (qNumber === quizData.questionsCount) {
+    if (qNumber === quizData.sampleQuestions) {
       document.querySelector("#next").style.display = "none";
       document.querySelector("#finish").removeAttribute("disabled");
       localStorage.setItem("answers", JSON.stringify(answers));
@@ -349,15 +363,14 @@ function prev() {
   window.location.href = `/student/quizStart/${quizData._id}?qNumber=${qNumber}`;
 }
 
-function finish() {
+async function finish() {
   const selectedOption = document.querySelector('input[name="answer"]:checked');
   if (selectedOption) {
     answers[qNumber] = Number(selectedOption.value);
   }
   localStorage.setItem("answers", JSON.stringify(answers));
-  console.log(answers);
   const numCorrect = calculateCorrectAnswers();
-  const totalQuestions = quizData.questionsCount;
+  const totalQuestions = quizData.sampleQuestions;
   const grade = (numCorrect / totalQuestions) * 100;
 
   const requestData = {
@@ -376,22 +389,33 @@ function finish() {
     document.getElementById("failmodelbtn").click();
   }
 
-  $.post("", requestData, (data, status) => {
+
+  const response = await fetch(`/student/quizStart/${quizData._id}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(requestData),
+  })
+  const data = await response.json();
+  if(response.ok){
     localStorage.clear("answers");
-    window.location.href = `/student/exams`;
-  });
+    console.log(data); 
+  }else{
+    window.location.href = `/student/quizStart/${quizData._id}?qNumber=${qNumber}`;
+  }
+ 
 }
 
 function calculateCorrectAnswers() {
   let numCorrect = 0;
   let c = 1;
-  quizData["Questions"].forEach((question) => {
+  quizQuestions.forEach((question) => {
    
     answers[c] == +(question.ranswer) ? numCorrect++ : console.log();
     c++;
   });
 
-  console.log(numCorrect);  
   return numCorrect;
 }
 
