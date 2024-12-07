@@ -491,19 +491,19 @@ async function getVideoWatch(req, res) {
 
   // Define video path and other parameters for Bunny.net token
   const videoId = video.videoURL; // Example video ID as token ID
-  const tokenSecurityKey = '3c13c271-d42b-4ca6-8967-45c515bd0f67'; // Replace with actual Bunny.net secret key
-  const expirationInSeconds = 50;
-  const expirationTimestamp =
-    Math.floor(Date.now() / 1000) + expirationInSeconds;
+  // const tokenSecurityKey = '3c13c271-d42b-4ca6-8967-45c515bd0f67'; // Replace with actual Bunny.net secret key
+  // const expirationInSeconds = 50;
+  // const expirationTimestamp =
+  //   Math.floor(Date.now() / 1000) + expirationInSeconds;
 
-  const token = generateBunnyToken(
-    tokenSecurityKey,
-    videoId,
-    expirationTimestamp
-  );
+  // const token = generateBunnyToken(
+  //   tokenSecurityKey,
+  //   videoId,
+  //   expirationTimestamp
+  // );
 
   // Construct the tokenized URL
-  let tokenizedURL = `https://iframe.mediadelivery.net/embed/337128/${videoId}?token=${token}&expires=${expirationTimestamp}&autoplay=true&loop=false&muted=false&preload=true&responsive=true`;
+  let tokenizedURL = `https://iframe.mediadelivery.net/embed/337128/${videoId}`;
   if (
     video.videoURL.startsWith('<iframe') ||
     video.videoURL.startsWith('<div')
